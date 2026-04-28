@@ -1,0 +1,110 @@
+{
+  "anchor_for": "q_001 — supplier_data dedupe",
+  "source": "USAspending.gov autocomplete API (api.usaspending.gov/api/v2/autocomplete/recipient/)",
+  "fetched_at": "2026-04-27T16:35:37+00:00",
+  "note": "Real federal-contractor names exhibiting the variant patterns AP supplier master teams encounter daily. UEI/DUNS are null in the autocomplete payload; for production use, hit the recipient_overview endpoint to pull canonical UEIs per pair to confirm whether they are the same legal entity.",
+  "all_lockheed_variants": [
+    "LOCKHEED MARTIN CORPORATION",
+    "LOCKHEED MARTIN INTEGRATED SYSTEMS, LLC",
+    "LOCKHEED MARTIN CORP",
+    "LOCKHEED MARTIN SERVICES, LLC",
+    "LOCKHEED MARTIN GLOBAL, INC.",
+    "LOCKHEED MARTIN SERVICES, INC.",
+    "LOCKHEED MARTIN SERVICES INC",
+    "LOCKHEED MARTIN",
+    "LOCKHEED MARTIN OVERSEAS, LLC",
+    "LOCKHEED MARTIN UNMANNED INTEGRATED SYSTEMS, INC.",
+    "LOCKHEED MISSILES & SPACE CO",
+    "8201 LOCKHEED, LP",
+    "LOCKHEED MARTIN ACULIGHT CORPORATION",
+    "LOCKHEED MARTIN AERONAUTICAL S",
+    "LOCKHEED MARTIN CANADA INC"
+  ],
+  "all_general_dynamics_variants": [
+    "GENERAL DYNAMICS INFORMATION TECHNOLOGY, INC.",
+    "GENERAL DYNAMICS MISSION SYSTEMS, INC.",
+    "GENERAL DYNAMICS GOVERNMENT SY",
+    "GENERAL DYNAMICS LAND SYSTEMS INC.",
+    "GENERAL DYNAMICS ORDNANCE AND TACTICAL SYSTEMS, INC.",
+    "GENERAL DYNAMICS-OTS, INC.",
+    "GENERAL DYNAMICS C4 SYSTEMS, INC.",
+    "GENERAL DYNAMICS CORPORATION",
+    "GENERAL DYNAMICS CANADA LTD",
+    "GENERAL DYNAMICS DECISION SYST",
+    "GENERAL DYNAMICS INFORMATION S",
+    "GENERAL DYNAMICS LAND SYSTEMS",
+    "GENERAL DYNAMICS LAND SYSTEMS - CANADA CORPORATION",
+    "GENERAL DYNAMICS ADVANCED INFORMATION SYSTEMS, INC.",
+    "GENERAL DYNAMICS GLOBAL IMAGING TECHNOLOGIES, INC."
+  ],
+  "annotated_pairs": [
+    {
+      "pair_id": "lockheed_corp",
+      "candidate_a": {
+        "recipient_name": "LOCKHEED MARTIN CORPORATION",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "candidate_b": {
+        "recipient_name": "LOCKHEED MARTIN CORP",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "pattern": "abbreviation variant (CORPORATION vs CORP)",
+      "likely_same_entity": true
+    },
+    {
+      "pair_id": "lockheed_services",
+      "candidate_a": {
+        "recipient_name": "LOCKHEED MARTIN SERVICES, INC.",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "candidate_b": {
+        "recipient_name": "LOCKHEED MARTIN SERVICES INC",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "pattern": "punctuation/comma variant",
+      "likely_same_entity": true
+    },
+    {
+      "pair_id": "lockheed_services_llc_vs_inc",
+      "candidate_a": {
+        "recipient_name": "LOCKHEED MARTIN SERVICES, LLC",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "candidate_b": {
+        "recipient_name": "LOCKHEED MARTIN SERVICES, INC.",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "pattern": "different legal entity type (LLC vs INC) — likely DIFFERENT legal entities, NOT a dedupe",
+      "likely_same_entity": false
+    },
+    {
+      "pair_id": "gd_land_systems",
+      "candidate_a": {
+        "recipient_name": "GENERAL DYNAMICS LAND SYSTEMS INC.",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "candidate_b": {
+        "recipient_name": "GENERAL DYNAMICS LAND SYSTEMS",
+        "recipient_level": null,
+        "uei": null,
+        "duns": null
+      },
+      "pattern": "missing entity suffix (truncation/abbreviation)",
+      "likely_same_entity": true
+    }
+  ]
+}

@@ -1,0 +1,224 @@
+"""CLI eval runner for ProfBench.
+
+Loads questions from ``data/questions.json`` into the SQLite database,
+sends each question to one or more configured model clients, and stores
+the responses with a shared run UUID. Use ``--dry-run`` to print prompts
+without calling any APIs.
+
+Examples
+--------
+    python -m runner.eval run --dry-run --limit 3
+    python -m runner.eval run --models claude
+    python -m runner.eval run --models claude,gpt4o --limit 5
+    python -m runner.eval list-runs
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+import uuid
+from typing import List, Optional
+
+import typer
+from rich.console import Console
+from rich.table import Table
+from tqdm import tqdm
+
+from runner import QUESTIONS_PATH, get_db, init_db, now_iso
+from runner.models import MODEL_REGISTRY, SYSTEM_PROMPT, build_client
+
+app = typer.Typer(help="ProfBench eval runner")
+console = Console()
+
+
+def _load_questions_into_db() -> int:
+    """Read ``data/questions.json`` and upsert into the ``questions`` table.
+
+    Returns the number of new rows inserted.
+    """
+    if not QUESTIONS_PATH.exists():
+        console.print(f"[red]questions file not found:[/red] {QUESTIONS_PATH}")
+        return 0
+    with QUESTIONS_PATH.open("r", encoding="utf-8") as fh:
+        items = json.load(fh)
+
+    inserted = 0
+    with get_db() as conn:
+        for q in items:
+            existing = conn.execute(
+                "SELECT 1 FROM questions WHERE id = ?", (q["id"],)
+            ).fetchone()
+            if existing:
+                continue
+            conn.execute(
+                """
+                INSERT INTO questions (
+                    id, domain, category, difficulty, question, context,
+                    ideal_answer, rubric, expected_failure_mode, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    q["id"],
+                    q.get("domain", ""),
+                    q.get("category", ""),
+                    q.get("difficulty", ""),
+                    q["question"],
+                    q.get("context", ""),
+                    q.get("ideal_answer", ""),
+                    json.dumps(q.get("rubric", {})),
+                    q.get("expected_failure_mode", ""),
+                    now_iso(),
+                ),
+            )
+            inserted += 1
+        conn.commit()
+    return inserted
+
+
+def _fetch_questions(limit: Optional[int]) -> list:
+    with get_db() as conn:
+        cur = conn.execute("SELECT * FROM questions ORDER BY id")
+        rows = cur.fetchall()
+    if limit is not None:
+        rows = rows[:limit]
+    return [dict(r) for r in rows]
+
+
+def _parse_models(models_arg: str) -> List[str]:
+    aliases = [m.strip().lower() for m in models_arg.split(",") if m.strip()]
+    unknown = [a for a in aliases if a not in MODEL_REGISTRY]
+    if unknown:
+        raise typer.BadParameter(
+            f"Unknown model alias(es): {unknown}. Known: {sorted(MODEL_REGISTRY)}"
+        )
+    return aliases
+
+
+@app.command("run")
+def run_cmd(
+    models: str = typer.Option("claude", help="Comma-separated model aliases."),
+    limit: Optional[int] = typer.Option(None, help="Run only the first N questions."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print prompts; do not call APIs."),
+) -> None:
+    """Run the eval over all configured models."""
+    init_db()
+    inserted = _load_questions_into_db()
+    if inserted:
+        console.print(f"[green]Loaded {inserted} new question(s) into the DB.[/green]")
+
+    questions = _fetch_questions(limit)
+    if not questions:
+        console.print("[yellow]No questions found.[/yellow] "
+                      "Edit data/questions.json and re-run.")
+        raise typer.Exit(code=0)
+
+    aliases = _parse_models(models)
+
+    if dry_run:
+        console.print(f"[bold]Dry run[/bold] — {len(questions)} question(s) "
+                      f"× {len(aliases)} model(s)")
+        for q in questions:
+            console.rule(f"[cyan]{q['id']}[/cyan] · {q['category']} · {q['difficulty']}")
+            console.print(f"[dim]system:[/dim] {SYSTEM_PROMPT}")
+            if q.get("context"):
+                console.print(f"[dim]context:[/dim] {q['context']}")
+            console.print(f"[bold]question:[/bold] {q['question']}")
+            console.print(f"[dim]→ would call:[/dim] {', '.join(aliases)}")
+        return
+
+    clients = []
+    for alias in aliases:
+        try:
+            clients.append((alias, build_client(alias)))
+        except Exception as exc:  # noqa: BLE001
+            console.print(f"[red]Failed to build client '{alias}':[/red] {exc}")
+
+    if not clients:
+        console.print("[red]No usable model clients; aborting.[/red]")
+        raise typer.Exit(code=1)
+
+    run_id = str(uuid.uuid4())
+    console.print(f"[bold]run_id:[/bold] {run_id}")
+
+    total = len(questions) * len(clients)
+    pbar = tqdm(total=total, desc="evaluating", unit="resp")
+    successes = failures = 0
+
+    for q in questions:
+        for alias, client in clients:
+            try:
+                result = client.complete(q["question"], q.get("context") or "")
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        INSERT INTO responses (
+                            question_id, model, response, tokens_used,
+                            latency_ms, run_id, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            q["id"],
+                            client.name,
+                            result["response"],
+                            result["tokens"],
+                            result["latency_ms"],
+                            run_id,
+                            now_iso(),
+                        ),
+                    )
+                    conn.commit()
+                successes += 1
+            except Exception as exc:  # noqa: BLE001
+                print(f"[eval] {alias} failed on {q['id']}: {exc!r}", file=sys.stderr)
+                failures += 1
+            finally:
+                pbar.update(1)
+    pbar.close()
+
+    console.print(
+        f"[green]done.[/green] success={successes} failure={failures} run_id={run_id}"
+    )
+
+
+@app.command("list-runs")
+def list_runs_cmd() -> None:
+    """List all run_ids with timestamp, model, and question counts."""
+    init_db()
+    with get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT run_id,
+                   MIN(created_at) AS started_at,
+                   model,
+                   COUNT(DISTINCT question_id) AS questions,
+                   COUNT(*)                    AS responses
+            FROM responses
+            GROUP BY run_id, model
+            ORDER BY started_at DESC
+            """
+        ).fetchall()
+
+    if not rows:
+        console.print("[yellow]No runs yet.[/yellow]")
+        return
+
+    table = Table(title="ProfBench runs")
+    table.add_column("run_id", style="cyan", no_wrap=True)
+    table.add_column("started_at")
+    table.add_column("model")
+    table.add_column("questions", justify="right")
+    table.add_column("responses", justify="right")
+    for r in rows:
+        table.add_row(
+            r["run_id"],
+            r["started_at"],
+            r["model"],
+            str(r["questions"]),
+            str(r["responses"]),
+        )
+    console.print(table)
+
+
+if __name__ == "__main__":
+    app()

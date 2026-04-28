@@ -1,0 +1,261 @@
+{
+  "anchor_for": "q_009 — supplier_data sanctions screening",
+  "source": "OFAC SDN list (treasury.gov/ofac/downloads/sdn.csv)",
+  "fetched_at": "2026-04-27T16:35:37+00:00",
+  "total_records_in_sdn": 18864,
+  "program_distribution_top10": [
+    [
+      "RUSSIA-EO14024",
+      5717
+    ],
+    [
+      "SDGT",
+      2145
+    ],
+    [
+      "SDNTK",
+      1381
+    ],
+    [
+      "GLOMAG",
+      732
+    ],
+    [
+      "IRAN-EO13902",
+      646
+    ],
+    [
+      "NPWMD] [IFSR",
+      594
+    ],
+    [
+      "UKRAINE-EO13662] [RUSSIA-EO14024",
+      508
+    ],
+    [
+      "IRAN",
+      473
+    ],
+    [
+      "ILLICIT-DRUGS-EO14059",
+      455
+    ],
+    [
+      "IRAN-EO13846",
+      439
+    ]
+  ],
+  "stratified_sample": [
+    {
+      "ent_num": "10392",
+      "sdn_name": "MINISTRY OF DEFENSE AND ARMED FORCES LOGISTICS",
+      "sdn_type": "entity",
+      "program": "SDGT] [NPWMD] [IFSR] [IRAN-CON-ARMS-EO] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Additional Sanctions Information - Subject to Secondary Sanctions; Secondary sanctions risk: See Section 11 of Executive Order 14024.; alt. Secondary sanctions risk: section 1(b) of Executive Order 13224, as amended by Executive Order 13886; Linked To: ISLAMIC REVOLUTIONARY GUARD CORPS (IRGC)-QODS FORCE; Linked To: ROSOBORONEKSPORT OAO."
+    },
+    {
+      "ent_num": "12055",
+      "sdn_name": "ISLAMIC REVOLUTIONARY GUARD CORPS AIR FORCE",
+      "sdn_type": "entity",
+      "program": "FTO] [SDGT] [NPWMD] [IRGC] [IFSR] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Additional Sanctions Information - Subject to Secondary Sanctions; Secondary sanctions risk: See Section 11 of Executive Order 14024.; alt. Secondary sanctions risk: section 1(b) of Executive Order 13224, as amended by Executive Order 13886."
+    },
+    {
+      "ent_num": "16418",
+      "sdn_name": "QODS AVIATION INDUSTRIES",
+      "sdn_type": "entity",
+      "program": "NPWMD] [IFSR] [IRAN-CON-ARMS-EO] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Additional Sanctions Information - Subject to Secondary Sanctions; Secondary sanctions risk: See Section 11 of Executive Order 14024.; National ID No. 14005441856 (Iran); Registration Number 483250 (Iran); Linked To: MINISTRY OF DEFENSE AND ARMED FORCES LOGISTICS."
+    },
+    {
+      "ent_num": "16806",
+      "sdn_name": "OOO VOLGA GROUP",
+      "sdn_type": "entity",
+      "program": "UKRAINE-EO13661] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Secondary sanctions risk: Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209; alt. Secondary sanctions risk: See Section 11 of Executive Order 14024.; Tax ID No. 7718989383 (Russia); Registration Number 1147746803049 (Russia)."
+    },
+    {
+      "ent_num": "16807",
+      "sdn_name": "OOO TRANSOIL",
+      "sdn_type": "entity",
+      "program": "UKRAINE-EO13661] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Secondary sanctions risk: Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209; alt. Secondary sanctions risk: See Section 11 of Executive Order 14024.; Tax ID No. 7811139006 (Russia); Registration Number 1037825043200 (Russia); Linked To: TIMCHENKO, Gennady Nikolayevich."
+    },
+    {
+      "ent_num": "15892",
+      "sdn_name": "PROKOPENKO, Ivan Pavlovitch",
+      "sdn_type": "individual",
+      "program": "MAGNIT] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "DOB 28 Sep 1973; POB Vinnitsa, Ukraine; nationality Russia; alt. nationality Ukraine; citizen Russia; alt. citizen Ukraine; Gender Male; Secondary sanctions risk: See Section 11 of Executive Order 14024.; Tax ID No. 773407989940 (Russia)."
+    },
+    {
+      "ent_num": "16659",
+      "sdn_name": "KLISHAS, Andrey Aleksandrovich",
+      "sdn_type": "individual",
+      "program": "UKRAINE-EO13661] [RUSSIA-EO14024",
+      "title": "Member of the Federation Council of the Federal Assembly of the Russian Federation",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "DOB 09 Nov 1972; POB Yekaterinburg, Sverdlovsk, Russia; nationality Russia; Gender Male; Secondary sanctions risk: Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209; alt. Secondary sanctions risk: See Section 11 of Executive Order 14024.; Member of the Federation Council of the Federal Assembly of the Russian Federation."
+    },
+    {
+      "ent_num": "16660",
+      "sdn_name": "MATVIYENKO, Valentina Ivanovna",
+      "sdn_type": "individual",
+      "program": "UKRAINE-EO13661] [RUSSIA-EO14024",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "DOB 07 Apr 1949; POB Shepetovka, Khmelnitsky, Ukraine; nationality Russia; Gender Female; Secondary sanctions risk: Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201 and/or 589.209; alt. Secondary sanctions risk: See Section 11 of Executive Order 14024."
+    },
+    {
+      "ent_num": "4632",
+      "sdn_name": "BANK MARKAZI JOMHOURI ISLAMI IRAN",
+      "sdn_type": "entity",
+      "program": "IRAN] [SDGT] [IRGC] [IFSR",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Additional Sanctions Information - Subject to Secondary Sanctions; Secondary sanctions risk: section 1(b) of Executive Order 13224, as amended by Executive Order 13886; Digital Currency Address - TRX TNiq9AXBp9EjUqhDhrwrfvAA8U3GUQZH81; alt. Digital Currency Address - TRX TTiDLWE6fZK8okMJv6ijg42yrH6W2pjSr9; Linked To: ISLAMIC REVOLUTIONARY GUARD CORPS (IRGC)-QODS FORCE; Linked To: HIZBALLAH."
+    },
+    {
+      "ent_num": "4633",
+      "sdn_name": "BANK MASKAN",
+      "sdn_type": "entity",
+      "program": "IRAN] [IRAN-EO13902",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Website www.bank-maskan.ir; Additional Sanctions Information - Subject to Secondary Sanctions; all offices worldwide."
+    },
+    {
+      "ent_num": "4635",
+      "sdn_name": "BANK REFAH KARGARAN",
+      "sdn_type": "entity",
+      "program": "IRAN] [IRAN-EO13902",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Website www.bankrefah.ir; alt. Website www.refah-bank.ir; Additional Sanctions Information - Subject to Secondary Sanctions; all offices worldwide."
+    },
+    {
+      "ent_num": "12111",
+      "sdn_name": "IRANIAN MINISTRY OF INTELLIGENCE AND SECURITY",
+      "sdn_type": "entity",
+      "program": "SDGT] [IFSR] [IRAN-HR] [HRIT-IR] [CYBER2] [HOSTAGES-EO14078",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Additional Sanctions Information - Subject to Secondary Sanctions; Secondary sanctions risk: section 1(b) of Executive Order 13224, as amended by Executive Order 13886; Target Type Government Entity; a.k.a. 'MOIS'; a.k.a. 'VEVAK'."
+    },
+    {
+      "ent_num": "21332",
+      "sdn_name": "SPECIAL TECHNOLOGY CENTER",
+      "sdn_type": "entity",
+      "program": "CYBER2",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "",
+      "tonnage": "",
+      "grt": "",
+      "vess_flag": "",
+      "vess_owner": "",
+      "remarks": "Website stc-spb.ru; Email Address stcspb1@mail.ru; Secondary sanctions risk: Ukraine-/Russia-Related Sanctions Regulations, 31 CFR 589.201; Tax ID No. 7802170553 (Russia)."
+    },
+    {
+      "ent_num": "4238",
+      "sdn_name": "MAR AZUL",
+      "sdn_type": "vessel",
+      "program": "CUBA",
+      "title": "",
+      "call_sign": "CL2192",
+      "vess_type": "Tug",
+      "tonnage": "",
+      "grt": "212",
+      "vess_flag": "Cuba",
+      "vess_owner": "Samir de Navegacion S.A.",
+      "remarks": ""
+    },
+    {
+      "ent_num": "4243",
+      "sdn_name": "EBANO",
+      "sdn_type": "vessel",
+      "program": "CUBA",
+      "title": "",
+      "call_sign": "",
+      "vess_type": "General Cargo",
+      "tonnage": "2595",
+      "grt": "1865",
+      "vess_flag": "Panama",
+      "vess_owner": "",
+      "remarks": "Vessel Registration Identification IMO 7406784; f.k.a. 'ANA I'; f.k.a. 'SAND SWAN'."
+    }
+  ],
+  "note": "Real SDN-listed entities/individuals/vessels across high-volume programs. Use one Russia-program entity to make q_009's hypothetical 'Pacific Trade Solutions LLC / Ivan Petrov' scenario concrete — replace the made-up name with a real entity if you want the model to face an actual screening hit, OR keep the made-up scenario and use this list as the rubric anchor for 'what should the sanctions screen check against.'"
+}

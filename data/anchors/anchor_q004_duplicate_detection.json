@@ -1,0 +1,222 @@
+{
+  "anchor_for": "q_004 — invoice_processing duplicate detection",
+  "source": "data.cityofchicago.org Payments dataset (resource s4vu-giwb)",
+  "fetched_at": "2026-04-27T16:35:37+00:00",
+  "rows_in_sample": 2000,
+  "exact_duplicate_cluster_count": 35,
+  "near_amount_pair_count": 0,
+  "note": "Exact-cluster = same vendor + same amount + same contract appearing 2+ times in the sample. These are not necessarily improper payments — they may be legitimate milestone billings on a multi-payment contract — but they are exactly the rows a duplicate-detection rule would flag for review. Use the top cluster to anchor the scenario in q_004 (replace the synthesized 'NB-2024-1142' invoice numbers with real values).",
+  "top_exact_duplicate_clusters": [
+    {
+      "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC.",
+      "amount": "798240.72",
+      "contract_number": "92320",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "798240.72",
+          "check_date": "2024",
+          "contract_number": "92320",
+          "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC."
+        },
+        {
+          "amount": "798240.72",
+          "check_date": "2024",
+          "department_name": "CHICAGO DEPARTMENT OF PUBLIC HEALTH",
+          "contract_number": "92320",
+          "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC."
+        }
+      ]
+    },
+    {
+      "vendor_name": "SGA YOUTH & FAMILY SERVICES, NFP",
+      "amount": "51017.57",
+      "contract_number": "254026",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "51017.57",
+          "check_date": "2024",
+          "department_name": "DEPARTMENT OF FAMILY AND SUPPORT SERVICES",
+          "contract_number": "254026",
+          "vendor_name": "SGA YOUTH & FAMILY SERVICES, NFP"
+        },
+        {
+          "amount": "51017.57",
+          "check_date": "2024",
+          "contract_number": "254026",
+          "vendor_name": "SGA YOUTH & FAMILY SERVICES, NFP"
+        }
+      ]
+    },
+    {
+      "vendor_name": "CLARETIAN ASSOCIATES",
+      "amount": "33713.16",
+      "contract_number": "178762",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "33713.16",
+          "check_date": "2024",
+          "contract_number": "178762",
+          "vendor_name": "CLARETIAN ASSOCIATES"
+        },
+        {
+          "amount": "33713.16",
+          "check_date": "2024",
+          "department_name": "DEPARTMENT OF HOUSING",
+          "contract_number": "178762",
+          "vendor_name": "CLARETIAN ASSOCIATES"
+        }
+      ]
+    },
+    {
+      "vendor_name": "UPTOWN UNITED",
+      "amount": "45259.05",
+      "contract_number": "192975",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "45259.05",
+          "check_date": "2024",
+          "department_name": "DEPARTMENT OF PLANNING AND DEVELOPMENT",
+          "contract_number": "192975",
+          "vendor_name": "UPTOWN UNITED"
+        },
+        {
+          "amount": "45259.05",
+          "check_date": "2024",
+          "contract_number": "192975",
+          "vendor_name": "UPTOWN UNITED"
+        }
+      ]
+    },
+    {
+      "vendor_name": "K.L.E.O. COMMUNITY FAMILY LIFE CENTER",
+      "amount": "154271.09",
+      "contract_number": "264317",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "154271.09",
+          "check_date": "2024",
+          "contract_number": "264317",
+          "vendor_name": "K.L.E.O. COMMUNITY FAMILY LIFE CENTER"
+        },
+        {
+          "amount": "154271.09",
+          "check_date": "2024",
+          "department_name": "DEPARTMENT OF FAMILY AND SUPPORT SERVICES",
+          "contract_number": "264317",
+          "vendor_name": "K.L.E.O. COMMUNITY FAMILY LIFE CENTER"
+        }
+      ]
+    },
+    {
+      "vendor_name": "PUERTO RICAN CULTURAL CENTER",
+      "amount": "121227.91",
+      "contract_number": "175959",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "121227.91",
+          "check_date": "2024",
+          "contract_number": "175959",
+          "vendor_name": "PUERTO RICAN CULTURAL CENTER"
+        },
+        {
+          "amount": "121227.91",
+          "check_date": "2024",
+          "department_name": "CHICAGO DEPARTMENT OF PUBLIC HEALTH",
+          "contract_number": "175959",
+          "vendor_name": "PUERTO RICAN CULTURAL CENTER"
+        }
+      ]
+    },
+    {
+      "vendor_name": "UPTOWN UNITED",
+      "amount": "32499.78",
+      "contract_number": "217997",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "32499.78",
+          "check_date": "2024",
+          "contract_number": "217997",
+          "vendor_name": "UPTOWN UNITED"
+        },
+        {
+          "amount": "32499.78",
+          "check_date": "2024",
+          "department_name": "DEPT OF BUSINESS AFFAIRS & CONSUMER PROTECTION",
+          "contract_number": "217997",
+          "vendor_name": "UPTOWN UNITED"
+        }
+      ]
+    },
+    {
+      "vendor_name": "LANDRUM & BROWN, INC",
+      "amount": "2235.94",
+      "contract_number": "28075",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "2235.94",
+          "check_date": "2024",
+          "department_name": "CHICAGO DEPARTMENT OF AVIATION",
+          "contract_number": "28075",
+          "vendor_name": "LANDRUM & BROWN, INC"
+        },
+        {
+          "amount": "2235.94",
+          "check_date": "2024",
+          "contract_number": "28075",
+          "vendor_name": "LANDRUM & BROWN, INC"
+        }
+      ]
+    },
+    {
+      "vendor_name": "PUERTO RICAN CULTURAL CENTER",
+      "amount": "144943.96",
+      "contract_number": "92311",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "144943.96",
+          "check_date": "2024",
+          "contract_number": "92311",
+          "vendor_name": "PUERTO RICAN CULTURAL CENTER"
+        },
+        {
+          "amount": "144943.96",
+          "check_date": "2024",
+          "department_name": "CHICAGO DEPARTMENT OF PUBLIC HEALTH",
+          "contract_number": "92311",
+          "vendor_name": "PUERTO RICAN CULTURAL CENTER"
+        }
+      ]
+    },
+    {
+      "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC.",
+      "amount": "248230.16",
+      "contract_number": "218472",
+      "occurrences": 2,
+      "rows": [
+        {
+          "amount": "248230.16",
+          "check_date": "2024",
+          "contract_number": "218472",
+          "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC."
+        },
+        {
+          "amount": "248230.16",
+          "check_date": "2024",
+          "department_name": "DEPARTMENT OF FAMILY AND SUPPORT SERVICES",
+          "contract_number": "218472",
+          "vendor_name": "HEARTLAND HUMAN CARE SERVICES, INC."
+        }
+      ]
+    }
+  ],
+  "near_amount_pairs_sample": []
+}

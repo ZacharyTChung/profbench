@@ -1,0 +1,18 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+db/*.db
+.DS_Store
+.streamlit/
+*.egg-info/
+
+# Large raw fetched data — re-fetchable via data/anchors/_build_anchors.py
+data/anchors/ofac_sdn.csv
+data/anchors/chicago_payments_raw.json
+data/anchors/usaspending_recipients_raw.json
+data/anchors/lockheed_autocomplete.json
+data/anchors/general_dynamics_autocomplete.json
+data/anchors/nyc_checkbook_raw.json
+data/anchors/worldbank_procurement_raw.json
