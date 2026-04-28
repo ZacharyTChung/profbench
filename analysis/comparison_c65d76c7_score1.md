@@ -417,16 +417,16 @@ Invoice INV-88412 from supplier
 ### Rubric
 
 - **0**: Identifies fewer than two of the three exceptions, computes the variances incorrectly, or pays the invoice as-is
-- **1**: Identifies all three exceptions and the basic resolution but misses tolerance-edge nuance, role segregation, or treats freight as automatically payable
-- **2**: Identifies all three exceptions with correct math, addresses each through the proper role (AP / buyer / receiver), and references SOX three-way-match control and segregation of duties
+- **1**: Identifies all three exceptions and the basic resolution but misses role segregation, treats freight as automatically payable, or fails to flag the boundary case at all (5.00% qty / 2.00% price exactly at tolerance)
+- **2**: Identifies all three exceptions with correct math, explicitly states which tolerance convention is being applied (strictly-less-than vs less-than-or-equal — both are defensible) and reasons consistently from that, addresses each through the proper role (AP / buyer / receiver), and references SOX three-way-match control and segregation of duties
 
 ### Ideal answer
 
 Three exceptions:
 
-1. Quantity variance — invoice 100 units vs. GR 95 units = 5-unit / 5.00% variance. The GR is marked final delivery, so the missing 5 units will not be received. The invoice over-bills by 5 units × $10.00 = $50.00. Tolerance is ±5% on quantity, so 5.00% is at the edge — most systems treat 5.00% as out of tolerance (tolerance is typically applied as 'less than'). Treat as exception.
+1. Quantity variance — invoice 100 units vs. GR 95 units = 5-unit / 5.00% variance. The GR is marked final delivery, so the missing 5 units will not be received. The invoice over-bills by 5 units × $10.00 = $50.00. Tolerance is ±5% on quantity. **Both `<` and `≤` are defensible conventions in industry — SAP defaults to `<` while some Oracle / mid-market systems use `≤`. State which convention the responder is applying and reason consistently.** Under `<`, 5.00% is out of tolerance → exception. Under `≤`, 5.00% is in tolerance but is still a quantity issue against a final-delivery GR (you cannot pay for unshipped units), so it routes as a no-tolerance exception regardless. Either way, the resolution is the same: do not pay for the 5 unshipped units.
 
-2. Price variance — $10.20 vs. PO $10.00 = $0.20 / 2.00% variance. Tolerance ±2%, again at the edge. Treat as exception. Over-bill at PO quantity = 100 × $0.20 = $20.00.
+2. Price variance — $10.20 vs. PO $10.00 = $0.20 / 2.00% variance. Tolerance ±2%, same boundary question. Under `<`, out of tolerance → exception. Under `≤`, in tolerance → auto-release per ERP. Over-bill at PO quantity = 100 × $0.20 = $20.00. Even under `≤`, best practice is to surface boundary-case variances to the buyer rather than auto-pay; documenting the convention explicitly is the audit-defensible move.
 
 3. Unauthorized freight — $35.00 freight line is not on the PO. Whether freight is allowable depends on the Incoterms / freight policy on the PO. If the PO is silent and policy is 'freight included unless on PO,' reject the freight line.
 
@@ -587,7 +587,7 @@ The PO tolerance policy (±2% price, ±5% quantity) defines the **auto-approval 
 
 - **Score:** 1
 - **Confidence:** high
-- **Reasoning:** The candidate identifies all three core exceptions (quantity, price, freight) with correct math and provides a thorough resolution path with role assignments (AP Clerk, AP Specialist, Buyer, Procurement Manager, Cost Center Manager). However, it explicitly treats the 5% quantity and 2% price variances as 'within tolerance — at the boundary,' which contradicts the ideal answer's tolerance-edge nuance (typically 'less than' so 5.00% and 2.00% are out of tolerance). While the candidate still flags them as needing attention and correctly identifies the GR-vs-invoice mismatch as a hard fail, it misses the tolerance-edge interpretation. Additionally, while segregation of duties is mentioned for freight, there is no explicit reference to SOX P2P three-way-match control testing. This aligns with the rubric's level 1: identifies all three exceptions and resolution but misses tolerance-edge nuance.
+- **Reasoning:** The candidate identifies all four key issues (quantity short-ship with final delivery flag, price variance, invoice-vs-GR quantity mismatch, and unauthorized freight) with correct math ($86 total overbilling, 5-unit shortfall, $0.20/unit price increase, $35 freight). It explicitly flags that both the 5% quantity and 2% price variances land 'exactly at the boundary' — addressing the boundary case. However, it does not explicitly state which tolerance convention (strictly-less-than vs. less-than-or-equal) is being applied and reason consistently from that — it just calls them 'at limit' and treats them as technically passable. Role assignments (AP Clerk, Buyer, Procurement Manager, Finance) are present and segregation of duties is mentioned for freight, but there is no explicit reference to SOX three-way-match controls. The treatment of freight is appropriately conditional, not auto-payable. This fits the rubric's level 1 description: identifies all exceptions and resolution paths, addresses boundary case, but misses the explicit convention statement and SOX reference required for a 2.
 
 ### Decision (fill in)
 
@@ -625,16 +625,16 @@ Invoice INV-88412 from supplier
 ### Rubric
 
 - **0**: Identifies fewer than two of the three exceptions, computes the variances incorrectly, or pays the invoice as-is
-- **1**: Identifies all three exceptions and the basic resolution but misses tolerance-edge nuance, role segregation, or treats freight as automatically payable
-- **2**: Identifies all three exceptions with correct math, addresses each through the proper role (AP / buyer / receiver), and references SOX three-way-match control and segregation of duties
+- **1**: Identifies all three exceptions and the basic resolution but misses role segregation, treats freight as automatically payable, or fails to flag the boundary case at all (5.00% qty / 2.00% price exactly at tolerance)
+- **2**: Identifies all three exceptions with correct math, explicitly states which tolerance convention is being applied (strictly-less-than vs less-than-or-equal — both are defensible) and reasons consistently from that, addresses each through the proper role (AP / buyer / receiver), and references SOX three-way-match control and segregation of duties
 
 ### Ideal answer
 
 Three exceptions:
 
-1. Quantity variance — invoice 100 units vs. GR 95 units = 5-unit / 5.00% variance. The GR is marked final delivery, so the missing 5 units will not be received. The invoice over-bills by 5 units × $10.00 = $50.00. Tolerance is ±5% on quantity, so 5.00% is at the edge — most systems treat 5.00% as out of tolerance (tolerance is typically applied as 'less than'). Treat as exception.
+1. Quantity variance — invoice 100 units vs. GR 95 units = 5-unit / 5.00% variance. The GR is marked final delivery, so the missing 5 units will not be received. The invoice over-bills by 5 units × $10.00 = $50.00. Tolerance is ±5% on quantity. **Both `<` and `≤` are defensible conventions in industry — SAP defaults to `<` while some Oracle / mid-market systems use `≤`. State which convention the responder is applying and reason consistently.** Under `<`, 5.00% is out of tolerance → exception. Under `≤`, 5.00% is in tolerance but is still a quantity issue against a final-delivery GR (you cannot pay for unshipped units), so it routes as a no-tolerance exception regardless. Either way, the resolution is the same: do not pay for the 5 unshipped units.
 
-2. Price variance — $10.20 vs. PO $10.00 = $0.20 / 2.00% variance. Tolerance ±2%, again at the edge. Treat as exception. Over-bill at PO quantity = 100 × $0.20 = $20.00.
+2. Price variance — $10.20 vs. PO $10.00 = $0.20 / 2.00% variance. Tolerance ±2%, same boundary question. Under `<`, out of tolerance → exception. Under `≤`, in tolerance → auto-release per ERP. Over-bill at PO quantity = 100 × $0.20 = $20.00. Even under `≤`, best practice is to surface boundary-case variances to the buyer rather than auto-pay; documenting the convention explicitly is the audit-defensible move.
 
 3. Unauthorized freight — $35.00 freight line is not on the PO. Whether freight is allowable depends on the Incoterms / freight policy on the PO. If the PO is silent and policy is 'freight included unless on PO,' reject the freight line.
 
@@ -777,7 +777,7 @@ Controls and segregation:
 
 - **Score:** 1
 - **Confidence:** high
-- **Reasoning:** The candidate identifies all three exceptions (quantity, price, freight) and provides reasonable resolution paths including holding payment pending freight resolution. However, it misses the tolerance-edge nuance — treating both the 5% quantity and 2% price variances as WITHIN tolerance and recommending acceptance, when the ideal answer treats these edge cases as out of tolerance exceptions. Additionally, the candidate critically fails to recognize that the invoice bills for 100 units when only 95 were received (final delivery), recommending payment for 95 units × $10.20 rather than flagging the over-billing as a clear exception requiring a corrected invoice or credit memo. The SOX three-way match control and segregation of duties are not explicitly referenced, though some role separation is implied. Math is largely correct but the conclusions miss key nuances.
+- **Reasoning:** The candidate identifies all three exceptions (quantity, price, freight) with correct variance math (5 units/5%, $0.20/2%, $35 freight). However, it fails to explicitly address the boundary case convention (< vs ≤) — it simply asserts both quantity and price are 'within tolerance' without flagging that they sit exactly at the boundary or noting the convention being applied. More critically, it recommends paying for 100 units at $10.20 (Scenario A: $1,004 based on 95 units, but elsewhere implies accepting the full invoice) — yet the invoice bills 100 units when only 95 were received against a final-delivery GR, which means the supplier is over-billing for unshipped units regardless of tolerance. The candidate treats the quantity variance as routine 'accept with shortage' rather than recognizing the invoice itself over-bills. It also does not reference SOX three-way-match controls or segregation of duties explicitly, though it does assign roles. This fits rubric level 1: identifies exceptions and basic resolution but misses boundary-case flagging and SOX/SoD framing.
 
 ### Decision (fill in)
 

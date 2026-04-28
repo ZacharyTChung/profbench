@@ -1,6 +1,6 @@
 # ProfBench loss-analysis report
 
-_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T08:41:56+00:00_
+_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T18:03:51+00:00_
 
 ## Executive summary
 

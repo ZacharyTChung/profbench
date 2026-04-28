@@ -1,6 +1,6 @@
 # ProfBench leaderboard
 
-_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T08:19:59+00:00_
+_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T18:03:52+00:00_
 
 | Rank | Model | Avg score (0–2) | % of max | n | Best category | Worst category |
 | ---- | ----- | --------------- | -------- | - | ------------- | -------------- |
