@@ -77,6 +77,10 @@ python -m data.export --run-id <run_id>
 # 7. Side-by-side review for rubric calibration
 python scripts/compare.py <run_id>           # all questions
 python scripts/compare.py <run_id> 1         # only the score=1 ones
+
+# 8. After editing data/questions.json, refresh the DB without bumping ids
+python -m runner.eval refresh-questions
+# (or pass --refresh-questions to a `run` invocation to do both at once)
 ```
 
 Optional: `streamlit run scorer/app.py` for human rubric scoring (writes to
@@ -104,11 +108,19 @@ latest run. Pilot results across the Claude family are in those files
 
 ## Failure analysis
 
-`analysis/loss_report.md` breaks down score by model × category × difficulty.
-Use `scripts/compare.py <run_id>` to produce a side-by-side review file
-(`analysis/comparison_<run>.md`) that's structured for rubric calibration —
-for each non-2 score, decide whether the model genuinely fell short, the
+`analysis/loss_report.md` breaks down score by model × category × difficulty
+and includes auto-derived implications (universal weak categories, most
+discriminating categories, calibration prompts, annotation-budget heuristics)
+based on the actual run data — no manual fill-in.
+
+For per-response review: `scripts/compare.py <run_id>` produces a side-by-side
+review file (`analysis/comparison_<run>.md`) structured for rubric calibration.
+For each non-2 score, decide whether the model genuinely fell short, the
 ideal answer was too narrow, or the rubric was miscalibrated.
+
+`analysis/triage_score1.md` (when present) is a pre-categorized triage of
+score-1 responses — AI-generated best-guess (a)/(b)/(c) classifications for
+the practitioner to review/override.
 
 ## Dataset
 
@@ -124,12 +136,14 @@ mapping to AfterQuery's expert-in-the-loop data generation pipeline.
 ## Status (v0.1)
 
 - ✅ 10 questions across 4 categories, 3 difficulties
-- ✅ Eval harness, autograder, leaderboard, analysis, HF export
+- ✅ Eval harness, autograder, leaderboard, auto-derived loss implications, HF export
+- ✅ Multi-model pilot run (Opus 4.7, Sonnet 4.6, Haiku 4.5) — see `leaderboard/leaderboard.md`
 - ✅ Anchor data for q_001 (supplier dedupe), q_004 (duplicate detection), q_009 (sanctions)
-- ⚠ Ideal answers are first-pass; awaiting full expert validation
+- ✅ Reasoning-trace template (`data/traces/q_003_template.md`) — pending practitioner fill
+- ⚠ Ideal answers are first-pass; awaiting full expert validation (see `analysis/triage_score1.md`)
 - ⚠ Single domain expert (no peer review yet)
 - ⚠ Self-grading bias when Opus 4.7 is among evaluated models (also acts as judge)
-- ☐ Reasoning traces (vs static ideal answers) — see METHODOLOGY pending work
+- ☐ Reasoning traces filled in (template exists for q_003; replicate for all 10)
 - ☐ Expansion to 30+ questions
 - ☐ Cross-grader run with non-Anthropic judge (requires OpenAI / Google key)
 

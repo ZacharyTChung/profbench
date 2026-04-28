@@ -1,6 +1,6 @@
 # ProfBench loss-analysis report
 
-_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T08:19:59+00:00_
+_Run `c65d76c7-bf3a-4cb7-a7fb-23a92ba83b83` · scorer filter: `all` · generated 2026-04-28T08:41:56+00:00_
 
 ## Executive summary
 
@@ -68,8 +68,9 @@ _No responses have both human and auto scores yet — agreement statistics are u
 
 ## Implications
 
-_Template — fill in domain-specific recommendations._
-
-- **Targeted training data:** [DESCRIBE the kind of examples needed to address the top failure modes above — e.g. multi-step worked solutions, edge cases, professional conventions].
-- **Annotation budget:** [ESTIMATE how many additional expert-annotated examples would meaningfully move the score].
-- **Open questions:** [LIST areas where the rubric itself may be ambiguous and human raters disagreed].
+- **Domain-level weak categories** (mean across all models < 1.5): `supplier_data` (avg 1.17), `trade_and_tax` (avg 1.33). These are where the benchmark is doing real work — all models leak score here, so additional training data and rubric depth in these categories has the highest leverage.
+- **Most discriminating categories** (largest score spread across models): `trade_and_tax` (spread 1.33), `close_and_controls` (spread 0.50). These categories separate frontier from smaller models and are the strongest candidates for an evaluation-only public release.
+- **Highest-volume failure mode:** _applying domain conventions (cross-border tax)_ (1 score=0 occurrences). Targeted training data should prioritize worked examples in this mode.
+- **Headroom for the leading model** (`claude-opus-4-7`): 0.2 points to ceiling. Calibrate the rubric (`scripts/compare.py`) before declaring this a true gap — score=1 responses may be rubric-too-narrow.
+- **Score=1 share is 40.0% of all gradings** — calibration recommended. Run `python scripts/compare.py <run_id> 1` and triage each as (a) genuine model failure, (b) ideal_answer too narrow, or (c) rubric miscalibrated. Edits in (b)/(c) materially change the shape of the loss taxonomy above.
+- **Annotation budget:** current pilot is **n=10** questions. To move from a pilot to a defensible Market-Bench-style submission, target 30–50 questions minimum — focus expansion on the weak categories above.

@@ -32,24 +32,53 @@ app = typer.Typer(help="ProfBench eval runner")
 console = Console()
 
 
-def _load_questions_into_db() -> int:
-    """Read ``data/questions.json`` and upsert into the ``questions`` table.
+def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
+    """Read ``data/questions.json`` and load into the ``questions`` table.
 
-    Returns the number of new rows inserted.
+    By default, new ids are inserted and existing ids are skipped. When
+    ``refresh=True``, existing rows are also updated in place — use this
+    after editing question text, ideal_answer, or rubric so the changes
+    take effect without bumping ids or wiping the DB.
+
+    Returns ``(inserted, updated)``.
     """
     if not QUESTIONS_PATH.exists():
         console.print(f"[red]questions file not found:[/red] {QUESTIONS_PATH}")
-        return 0
+        return 0, 0
     with QUESTIONS_PATH.open("r", encoding="utf-8") as fh:
         items = json.load(fh)
 
     inserted = 0
+    updated = 0
     with get_db() as conn:
         for q in items:
             existing = conn.execute(
                 "SELECT 1 FROM questions WHERE id = ?", (q["id"],)
             ).fetchone()
-            if existing:
+            if existing and not refresh:
+                continue
+            if existing and refresh:
+                conn.execute(
+                    """
+                    UPDATE questions SET
+                        domain = ?, category = ?, difficulty = ?,
+                        question = ?, context = ?, ideal_answer = ?,
+                        rubric = ?, expected_failure_mode = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        q.get("domain", ""),
+                        q.get("category", ""),
+                        q.get("difficulty", ""),
+                        q["question"],
+                        q.get("context", ""),
+                        q.get("ideal_answer", ""),
+                        json.dumps(q.get("rubric", {})),
+                        q.get("expected_failure_mode", ""),
+                        q["id"],
+                    ),
+                )
+                updated += 1
                 continue
             conn.execute(
                 """
@@ -73,7 +102,7 @@ def _load_questions_into_db() -> int:
             )
             inserted += 1
         conn.commit()
-    return inserted
+    return inserted, updated
 
 
 def _fetch_questions(limit: Optional[int]) -> list:
@@ -100,12 +129,21 @@ def run_cmd(
     models: str = typer.Option("claude", help="Comma-separated model aliases."),
     limit: Optional[int] = typer.Option(None, help="Run only the first N questions."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print prompts; do not call APIs."),
+    refresh_questions: bool = typer.Option(
+        False,
+        "--refresh-questions",
+        help="Also UPDATE existing questions whose ids already exist in the DB. "
+        "Use after editing data/questions.json to pick up changes without "
+        "bumping ids or deleting the DB.",
+    ),
 ) -> None:
     """Run the eval over all configured models."""
     init_db()
-    inserted = _load_questions_into_db()
+    inserted, updated = _load_questions_into_db(refresh=refresh_questions)
     if inserted:
         console.print(f"[green]Loaded {inserted} new question(s) into the DB.[/green]")
+    if updated:
+        console.print(f"[green]Refreshed {updated} existing question(s).[/green]")
 
     questions = _fetch_questions(limit)
     if not questions:
@@ -178,6 +216,22 @@ def run_cmd(
 
     console.print(
         f"[green]done.[/green] success={successes} failure={failures} run_id={run_id}"
+    )
+
+
+@app.command("refresh-questions")
+def refresh_questions_cmd() -> None:
+    """Reload data/questions.json into the DB, updating existing rows.
+
+    Use this after editing question text, ideal_answer, or rubric so the
+    changes propagate to the DB without bumping ids or wiping the file.
+    Past responses/scores against those question ids remain in the DB —
+    re-run the eval if you want to re-grade against the updated rubric.
+    """
+    init_db()
+    inserted, updated = _load_questions_into_db(refresh=True)
+    console.print(
+        f"[green]questions refreshed.[/green] inserted={inserted} updated={updated}"
     )
 
 

@@ -78,6 +78,94 @@ def _failure_taxonomy(failure_df, examples_df) -> str:
     return "\n".join(lines)
 
 
+def _implications(per_model_df, per_cat_df, dist_df, failure_df) -> str:
+    """Auto-derive implications from the actual data instead of leaving a stub."""
+    if per_model_df.empty:
+        return "_No data yet — implications cannot be derived._"
+
+    lines: list[str] = []
+
+    # Universal weak categories (avg < 1.5 across all evaluated models).
+    if not per_cat_df.empty:
+        cat_means = per_cat_df.groupby("category")["avg_score"].mean().sort_values()
+        weak_cats = cat_means[cat_means < 1.5]
+        if not weak_cats.empty:
+            cat_list = ", ".join(f"`{c}` (avg {v:.2f})" for c, v in weak_cats.items())
+            lines.append(
+                f"- **Domain-level weak categories** (mean across all models < 1.5): "
+                f"{cat_list}. These are where the benchmark is doing real work — "
+                f"all models leak score here, so additional training data and rubric "
+                f"depth in these categories has the highest leverage."
+            )
+
+    # Categories where the score *spread* across models is highest — most discriminating.
+    if not per_cat_df.empty and per_cat_df["model"].nunique() >= 2:
+        spreads = (
+            per_cat_df.groupby("category")["avg_score"]
+            .agg(lambda s: float(s.max() - s.min()))
+            .sort_values(ascending=False)
+        )
+        top = spreads.head(2)
+        if not top.empty and top.iloc[0] > 0.4:
+            spread_list = ", ".join(f"`{c}` (spread {v:.2f})" for c, v in top.items())
+            lines.append(
+                f"- **Most discriminating categories** (largest score spread across "
+                f"models): {spread_list}. These categories separate frontier from "
+                f"smaller models and are the strongest candidates for an evaluation-only "
+                f"public release."
+            )
+
+    # Top failure mode by zero count.
+    if not failure_df.empty:
+        top_failure = failure_df.sort_values("zero_count", ascending=False).iloc[0]
+        mode = top_failure["expected_failure_mode"] or "_unspecified_"
+        lines.append(
+            f"- **Highest-volume failure mode:** _{mode}_ "
+            f"({int(top_failure['zero_count'])} score=0 occurrences). "
+            f"Targeted training data should prioritize worked examples in this mode."
+        )
+
+    # Per-model gap to ceiling.
+    top_row = per_model_df.iloc[0]
+    if float(top_row["avg_score"]) < 1.9:
+        gap = round(2.0 - float(top_row["avg_score"]), 3)
+        lines.append(
+            f"- **Headroom for the leading model** (`{top_row['model']}`): "
+            f"{gap} points to ceiling. Calibrate the rubric (`scripts/compare.py`) "
+            f"before declaring this a true gap — score=1 responses may be rubric-too-narrow."
+        )
+
+    # Score-1 share — calibration prompt.
+    if not dist_df.empty:
+        ones = dist_df["score_1"].sum()
+        total = (dist_df["score_0"] + dist_df["score_1"] + dist_df["score_2"]).sum()
+        if total > 0 and ones / total > 0.2:
+            pct = round(100 * ones / total, 1)
+            lines.append(
+                f"- **Score=1 share is {pct}% of all gradings** — calibration "
+                f"recommended. Run `python scripts/compare.py <run_id> 1` and triage "
+                f"each as (a) genuine model failure, (b) ideal_answer too narrow, "
+                f"or (c) rubric miscalibrated. Edits in (b)/(c) materially change the "
+                f"shape of the loss taxonomy above."
+            )
+
+    # Annotation-budget heuristic: rough rule of thumb.
+    n_questions = (
+        per_model_df.iloc[0]["n"] if not per_model_df.empty else 0
+    )
+    if n_questions and n_questions < 30:
+        lines.append(
+            f"- **Annotation budget:** current pilot is **n={n_questions}** "
+            f"questions. To move from a pilot to a defensible Market-Bench-style "
+            f"submission, target 30–50 questions minimum — focus expansion on the "
+            f"weak categories above."
+        )
+
+    if not lines:
+        return "_Implications could not be derived from the current run; expand model coverage and try again._"
+    return "\n".join(lines)
+
+
 def _per_model_observations(per_model_df, per_cat_df, dist_df) -> str:
     if per_model_df.empty:
         return "_No model results yet._"
@@ -184,16 +272,7 @@ def generate_cmd(
         )
 
     sections.append("\n## Implications\n")
-    sections.append(
-        "_Template — fill in domain-specific recommendations._\n\n"
-        "- **Targeted training data:** [DESCRIBE the kind of examples needed to "
-        "address the top failure modes above — e.g. multi-step worked solutions, "
-        "edge cases, professional conventions].\n"
-        "- **Annotation budget:** [ESTIMATE how many additional expert-annotated "
-        "examples would meaningfully move the score].\n"
-        "- **Open questions:** [LIST areas where the rubric itself may be "
-        "ambiguous and human raters disagreed].\n"
-    )
+    sections.append(_implications(per_model_df, per_cat_df, dist_df, failure_df))
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(sections), encoding="utf-8")
