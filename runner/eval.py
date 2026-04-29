@@ -63,7 +63,9 @@ def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
                     UPDATE questions SET
                         domain = ?, category = ?, difficulty = ?,
                         question = ?, context = ?, ideal_answer = ?,
-                        rubric = ?, expected_failure_mode = ?
+                        rubric = ?, expected_failure_mode = ?,
+                        question_type = ?, requires_assumption = ?,
+                        source_grounded = ?, source_doc = ?
                     WHERE id = ?
                     """,
                     (
@@ -75,6 +77,10 @@ def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
                         q.get("ideal_answer", ""),
                         json.dumps(q.get("rubric", {})),
                         q.get("expected_failure_mode", ""),
+                        q.get("question_type", "tactical"),
+                        int(bool(q.get("requires_assumption", False))),
+                        int(bool(q.get("source_grounded", False))),
+                        q.get("source_doc"),
                         q["id"],
                     ),
                 )
@@ -84,8 +90,9 @@ def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
                 """
                 INSERT INTO questions (
                     id, domain, category, difficulty, question, context,
-                    ideal_answer, rubric, expected_failure_mode, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ideal_answer, rubric, expected_failure_mode, created_at,
+                    question_type, requires_assumption, source_grounded, source_doc
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     q["id"],
@@ -98,6 +105,10 @@ def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
                     json.dumps(q.get("rubric", {})),
                     q.get("expected_failure_mode", ""),
                     now_iso(),
+                    q.get("question_type", "tactical"),
+                    int(bool(q.get("requires_assumption", False))),
+                    int(bool(q.get("source_grounded", False))),
+                    q.get("source_doc"),
                 ),
             )
             inserted += 1
@@ -105,13 +116,17 @@ def _load_questions_into_db(refresh: bool = False) -> tuple[int, int]:
     return inserted, updated
 
 
-def _fetch_questions(limit: Optional[int]) -> list:
+def _fetch_questions(limit: Optional[int], ids: Optional[List[str]] = None) -> list:
     with get_db() as conn:
         cur = conn.execute("SELECT * FROM questions ORDER BY id")
         rows = cur.fetchall()
+    out = [dict(r) for r in rows]
+    if ids:
+        wanted = {i.strip() for i in ids}
+        out = [q for q in out if q["id"] in wanted]
     if limit is not None:
-        rows = rows[:limit]
-    return [dict(r) for r in rows]
+        out = out[:limit]
+    return out
 
 
 def _parse_models(models_arg: str) -> List[str]:
@@ -128,6 +143,11 @@ def _parse_models(models_arg: str) -> List[str]:
 def run_cmd(
     models: str = typer.Option("claude", help="Comma-separated model aliases."),
     limit: Optional[int] = typer.Option(None, help="Run only the first N questions."),
+    ids: Optional[str] = typer.Option(
+        None, "--ids",
+        help="Comma-separated question ids (e.g. 'q_016,q_017,q_018'). "
+        "When set, only those questions are run.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print prompts; do not call APIs."),
     refresh_questions: bool = typer.Option(
         False,
@@ -145,7 +165,8 @@ def run_cmd(
     if updated:
         console.print(f"[green]Refreshed {updated} existing question(s).[/green]")
 
-    questions = _fetch_questions(limit)
+    id_list = [s.strip() for s in ids.split(",")] if ids else None
+    questions = _fetch_questions(limit, ids=id_list)
     if not questions:
         console.print("[yellow]No questions found.[/yellow] "
                       "Edit data/questions.json and re-run.")

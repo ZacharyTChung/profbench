@@ -27,7 +27,12 @@ CREATE TABLE IF NOT EXISTS questions (
     ideal_answer TEXT,
     rubric TEXT NOT NULL,
     expected_failure_mode TEXT,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    -- FinanceQA-aligned tagging (added in v0.2.0; backfilled with ALTER TABLE for older DBs)
+    question_type TEXT DEFAULT 'tactical',          -- 'tactical' | 'conceptual'
+    requires_assumption INTEGER DEFAULT 0,          -- bool: question requires an unstated assumption
+    source_grounded INTEGER DEFAULT 0,              -- bool: context drawn from a real public document
+    source_doc TEXT                                 -- name of the source document (for source_grounded questions)
 );
 
 CREATE TABLE IF NOT EXISTS responses (
@@ -76,9 +81,21 @@ def get_db() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    """Create all tables if they do not already exist."""
+    """Create all tables if they do not already exist; ALTER older DBs to add v0.2.0 columns."""
     with get_db() as conn:
         conn.executescript(SCHEMA)
+        # Migrate older DBs that pre-date the FinanceQA-aligned columns.
+        existing = {row["name"] for row in conn.execute("PRAGMA table_info(questions)").fetchall()}
+        migrations = [
+            ("question_type",       "ALTER TABLE questions ADD COLUMN question_type TEXT DEFAULT 'tactical'"),
+            ("requires_assumption", "ALTER TABLE questions ADD COLUMN requires_assumption INTEGER DEFAULT 0"),
+            ("source_grounded",     "ALTER TABLE questions ADD COLUMN source_grounded INTEGER DEFAULT 0"),
+            ("source_doc",          "ALTER TABLE questions ADD COLUMN source_doc TEXT"),
+        ]
+        for col, ddl in migrations:
+            if col not in existing:
+                conn.execute(ddl)
+        conn.commit()
 
 
 __all__ = [

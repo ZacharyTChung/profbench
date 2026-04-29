@@ -34,7 +34,10 @@ def _scores_dataframe(run_id: Optional[str], scorer_type: Optional[str]) -> pd.D
                r.run_id          AS run_id,
                q.category        AS category,
                q.difficulty      AS difficulty,
-               q.expected_failure_mode AS expected_failure_mode
+               q.expected_failure_mode AS expected_failure_mode,
+               COALESCE(q.question_type, 'tactical')         AS question_type,
+               COALESCE(q.requires_assumption, 0)            AS requires_assumption,
+               COALESCE(q.source_grounded, 0)                AS source_grounded
           FROM scores s
           JOIN responses r ON r.id = s.response_id
           JOIN questions q ON q.id = s.question_id
@@ -56,18 +59,59 @@ def _scores_dataframe(run_id: Optional[str], scorer_type: Optional[str]) -> pd.D
 
 def per_model_average(run_id: Optional[str] = None,
                       scorer_type: Optional[str] = None) -> pd.DataFrame:
-    """Average score per model on a 0–2 scale, plus % of max."""
+    """Average score per model on a 0–2 scale, plus % of max and FinanceQA-style binary exact-match.
+
+    Binary exact-match treats only score=2 as a 'correct' response. This
+    matches the FinanceQA paper's scoring convention ('exact correct match',
+    'no partial points') and produces the headline number used to compare
+    against the FinanceQA results table.
+    """
     df = _scores_dataframe(run_id, scorer_type)
     if df.empty:
-        return pd.DataFrame(columns=["model", "n", "avg_score", "pct_of_max"])
+        return pd.DataFrame(columns=["model", "n", "avg_score", "pct_of_max", "exact_match_pct"])
+    df = df.assign(exact_match=(df["score"] == MAX_SCORE).astype(int))
     grp = (
-        df.groupby("model")["score"]
-        .agg(n="count", avg_score="mean")
+        df.groupby("model")
+        .agg(n=("score", "count"),
+             avg_score=("score", "mean"),
+             exact_match_rate=("exact_match", "mean"))
         .reset_index()
     )
     grp["pct_of_max"] = (grp["avg_score"] / MAX_SCORE * 100).round(1)
+    grp["exact_match_pct"] = (grp["exact_match_rate"] * 100).round(1)
     grp["avg_score"] = grp["avg_score"].round(3)
+    grp = grp.drop(columns=["exact_match_rate"])
     return grp.sort_values("avg_score", ascending=False).reset_index(drop=True)
+
+
+def per_question_type(run_id: Optional[str] = None,
+                      scorer_type: Optional[str] = None) -> pd.DataFrame:
+    """FinanceQA-style breakdown: tactical-basic, tactical-assumption, conceptual.
+
+    Returns mean score and binary exact-match rate per (model, type_label).
+    """
+    df = _scores_dataframe(run_id, scorer_type)
+    if df.empty:
+        return pd.DataFrame(columns=["model", "type_label", "n", "avg_score", "exact_match_pct"])
+
+    def label(row):
+        if row["question_type"] == "conceptual":
+            return "conceptual"
+        return "tactical-assumption" if row["requires_assumption"] else "tactical-basic"
+
+    df = df.assign(type_label=df.apply(label, axis=1))
+    df = df.assign(exact_match=(df["score"] == MAX_SCORE).astype(int))
+    grp = (
+        df.groupby(["model", "type_label"])
+        .agg(n=("score", "count"),
+             avg_score=("score", "mean"),
+             exact_match_rate=("exact_match", "mean"))
+        .reset_index()
+    )
+    grp["avg_score"] = grp["avg_score"].round(3)
+    grp["exact_match_pct"] = (grp["exact_match_rate"] * 100).round(1)
+    grp = grp.drop(columns=["exact_match_rate"])
+    return grp
 
 
 def per_category(run_id: Optional[str] = None,

@@ -39,18 +39,22 @@ def _executive_summary(per_model_df) -> str:
     if per_model_df.empty:
         return "_No scores recorded yet — run the eval and score responses to populate this section._"
     top = per_model_df.iloc[0]
+    em = top.get("exact_match_pct", None)
+    em_clause = f", **{em}%** binary exact-match" if em is not None else ""
     if len(per_model_df) >= 2:
         runner_up = per_model_df.iloc[1]
         gap = round(float(top["avg_score"]) - float(runner_up["avg_score"]), 3)
+        ru_em = runner_up.get("exact_match_pct", None)
+        ru_em_clause = f", {ru_em}% exact-match" if ru_em is not None else ""
         return (
             f"**{top['model']}** leads with an average score of "
-            f"**{top['avg_score']}** ({top['pct_of_max']}% of max). "
+            f"**{top['avg_score']}** ({top['pct_of_max']}% of max{em_clause}). "
             f"The next-best model, **{runner_up['model']}**, trails by **{gap}** "
-            f"on a 0–2 scale ({runner_up['avg_score']}, {runner_up['pct_of_max']}% of max)."
+            f"on a 0–2 scale ({runner_up['avg_score']}, {runner_up['pct_of_max']}% of max{ru_em_clause})."
         )
     return (
         f"Only one model has recorded scores: **{top['model']}** with an average of "
-        f"**{top['avg_score']}** ({top['pct_of_max']}% of max). Add a second model to "
+        f"**{top['avg_score']}** ({top['pct_of_max']}% of max{em_clause}). Add a second model to "
         f"populate a comparative leaderboard."
     )
 
@@ -247,6 +251,23 @@ def generate_cmd(
     else:
         pivot = per_diff_df.pivot(index="model", columns="difficulty", values="avg_score")
         sections.append(pivot.round(3).to_markdown())
+
+    sections.append("\n## Score table — model × question type (FinanceQA-style)\n")
+    sections.append(
+        "_Tactical-basic = answerable from the context; tactical-assumption = "
+        "requires inferring something not stated; conceptual = principles / "
+        "no context. Per the FinanceQA paper, assumption-based questions are "
+        "the killer category — frontier models score <5% there._\n"
+    )
+    per_type_df = stats.per_question_type(run_id=run_id, scorer_type=scorer)
+    if per_type_df.empty:
+        sections.append("_no data_")
+    else:
+        pivot = per_type_df.pivot(index="model", columns="type_label", values="avg_score")
+        sections.append(pivot.round(3).to_markdown())
+        sections.append("\n**Binary exact-match rate (% scoring 2/2, FinanceQA convention):**\n")
+        em_pivot = per_type_df.pivot(index="model", columns="type_label", values="exact_match_pct")
+        sections.append(em_pivot.round(1).to_markdown())
 
     sections.append("\n## Score distribution (0 / 1 / 2 counts per model)\n")
     sections.append(_df_to_md(dist_df))

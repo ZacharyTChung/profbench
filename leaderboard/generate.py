@@ -45,6 +45,7 @@ def _ranked_table(run_id: str, scorer: Optional[str]):
                 "model": m,
                 "avg_score": row["avg_score"],
                 "pct_of_max": row["pct_of_max"],
+                "exact_match_pct": row.get("exact_match_pct", None),
                 "n": row["n"],
                 "best_category": best_cat,
                 "worst_category": worst_cat,
@@ -65,13 +66,14 @@ def _render_markdown(run_id: str, scorer: Optional[str], rows: list[dict]) -> st
         "",
         f"_Run `{run_id}` · scorer filter: `{scorer or 'all'}` · generated {now_iso()}_",
         "",
-        "| Rank | Model | Avg score (0–2) | % of max | n | Best category | Worst category |",
-        "| ---- | ----- | --------------- | -------- | - | ------------- | -------------- |",
+        "| Rank | Model | Avg (0–2) | % of max | Exact match (FinanceQA-style) | n | Best category | Worst category |",
+        "| ---- | ----- | --------- | -------- | ----------------------------- | - | ------------- | -------------- |",
     ]
     for r in rows:
+        em = f"{r['exact_match_pct']}%" if r.get("exact_match_pct") is not None else "—"
         lines.append(
             f"| {r['rank']} | `{r['model']}` | {r['avg_score']} | "
-            f"{r['pct_of_max']}% | {r['n']} | {r['best_category']} | {r['worst_category']} |"
+            f"{r['pct_of_max']}% | {em} | {r['n']} | {r['best_category']} | {r['worst_category']} |"
         )
     return "\n".join(lines) + "\n"
 

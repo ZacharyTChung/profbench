@@ -2888,6 +2888,564 @@ _(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
 
 ---
 
+## q_016 — invoice_processing · easy · **score 1/2** (model: `claude-haiku-4-5`)
+
+_Expected failure mode: applying domain conventions (stock-flow accounting principle)_
+
+### Question
+
+Accounts Payable Days (also called Days Payables Outstanding, DPO) is computed using the AVERAGE accounts-payable balance over the period rather than the ending balance. Why? What problem does the averaging convention solve, and what would go wrong if a junior analyst used the ending AP balance instead?
+
+### Rubric
+
+- **0**: Says ending AP is correct, OR fails to identify the stock/flow distinction, OR gives a definition without explaining the averaging convention
+- **1**: Identifies that average AP is correct but does not articulate the stock/flow consistency reasoning, OR misses the end-of-period-anomaly distortion, OR gives the formula without the principle
+- **2**: Articulates the stock/flow consistency principle as the underlying reason, identifies end-of-period anomalies as the concrete distortion that averaging solves, addresses comparability across firms, and references the canonical formula with the average-AP convention
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] DPO uses the AVERAGE accounts-payable balance because it reconciles a stock measure (AP, a balance-sheet item that exists as a snapshot) with a flow measure (purchases or COGS, an income-statement item that accumulates over a period). The averaging convention converts the stock measure into something comparable to the flow measure by representing the typical AP level throughout the period rather than a single point-in-time snapshot.
+
+What goes wrong with ending AP:
+
+1. **End-of-period anomalies distort the metric.** A company that pushes invoices out the door in the last week of the year (to compress AP for working-capital reporting) or holds invoices in the last week (to stretch DPO) will produce an ending balance that does not reflect typical operations. Average AP smooths these end-effects.
+
+2. **Consistency between numerator and denominator.** Purchases or COGS is an over-the-period number. If the denominator covers the full period, the numerator should represent the period too — average AP does that; ending AP doesn't.
+
+3. **Comparability across companies.** Different firms close their books on different cycles; ending AP varies systematically with fiscal calendar. Averaged AP is more comparable.
+
+4. **Audit defensibility.** Stock/flow consistency is a documented accounting principle (Holthausen & Zmijewski 2014). Using ending AP without disclosure invites a sourcing-quality challenge during diligence.
+
+The canonical formula is therefore: DPO = (Average AP / Purchases) × N, where 'Average AP' is typically (Beginning AP + Ending AP) / 2 for annual analysis or a more granular average (monthly average) for shorter-period analysis. Some firms use COGS in the denominator instead of Purchases as a practical proxy when Purchases isn't disclosed; the stock/flow consistency principle still requires averaging.
+
+### Model response
+
+# Accounts Payable Days (DPO): Why Averaging Matters
+
+## The Core Principle
+
+DPO measures the *average length of time* a company takes to pay its suppliers. Using an average AP balance ensures the metric reflects the typical payment cycle throughout the period, not a snapshot that may be unrepresentative.
+
+## Problems Solved by Averaging
+
+### 1. **Seasonality and Timing Distortions**
+Ending balances are highly vulnerable to when they're measured:
+- A retailer's AP on December 31 might be artificially inflated (post-holiday inventory purchases, pre-payment)
+- A retailer's AP on January 31 might be artificially depressed (post-holiday payment cycle complete)
+- A single snapshot misses the actual operational reality
+
+### 2. **Year-End Management Manipulation**
+Companies may intentionally manipulate period-end balances:
+- Accelerate payables to improve cash position before period-end
+- Delay payment timing specifically to inflate AP at fiscal year-end
+- Averaging dampens the impact of these tactical decisions
+
+### 3. **One-Time or Extraordinary Events**
+Ending balances can reflect non-recurring circumstances:
+- A major acquisition might spike payables temporarily
+- A supply-chain disruption might create unusual payment deferrals
+- Averaging smooths over these anomalies
+
+## What Goes Wrong With Ending Balance
+
+Using only the ending AP balance creates specific analytical failures:
+
+| Problem | Impact on DPO |
+|---------|---------------|
+| **Overstates DPO** if year-end AP was unusually high | Suggests company pays slower than reality |
+| **Understates DPO** if year-end AP was unusually low | Suggests company pays faster than reality |
+| **Reduces comparability** across periods | Makes trend analysis unreliable |
+| **Enables seasonality gaming** | Quarter-to-quarter comparisons become distorted |
+
+### Concrete Example
+- Company with typical AP of $10M but ends period with $15M (exceptional timing)
+- Using $15M ending balance overstates DPO by 50%
+- Average of $10M correctly reflects actual payment behavior
+
+## Best Practice
+
+**Calculate DPO as:**
+$$\text{DPO} = \frac{\text{Average Accounts Payable}}{\text{COGS}} \times \text{Days in Period}$$
+
+Where Average AP = (Beginning AP + Ending AP) ÷ 2
+
+This is consistent with how analysts calculate Days Inventory Outstanding (DIO) and Days Sales Outstanding (DSO)—all three use averages to create comparable working capital metrics across periods and companies.
+
+### Grader verdict
+
+- **Score:** 1
+- **Confidence:** high
+- **Reasoning:** The response identifies that average AP is correct and addresses end-of-period anomalies (manipulation, seasonality, one-time events) well. It also touches on comparability and provides the canonical formula. However, it does not explicitly articulate the stock/flow consistency principle—the fundamental reason that AP is a balance-sheet stock measure that must be reconciled with an income-statement flow measure (COGS/Purchases). This is the core conceptual reasoning the rubric requires for a 2, and the response treats averaging more as a smoothing technique than as a stock/flow reconciliation principle.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_017 — invoice_processing · medium · **score 1/2** (model: `claude-haiku-4-5`)
+
+_Expected failure mode: domain conventions (P2P control taxonomy)_
+
+### Question
+
+Explain the difference between a 'duplicate vendor record' and a 'duplicate payment.' Both are control concerns and both can result in improper cash outflows, but they are caught by different control regimes. What's the distinction, and why is it operationally important to keep the two regimes separate?
+
+### Rubric
+
+- **0**: Treats the two as the same concept, OR fails to distinguish master-data from transaction-stream controls, OR provides only one regime's controls without the other
+- **1**: Distinguishes the two phenomena but does not articulate the different control regimes, OR misses the bridge-case (duplicate payment across two duplicate vendor records), OR addresses only one of the operational-importance reasons
+- **2**: Cleanly distinguishes master-data hygiene from transaction-stream control, names specific controls in each regime, identifies the bridge case (cross-vendor-ID matching), and addresses at least two of: ownership separation, audit-evidence separation, remediation-path differences
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] **Duplicate vendor record** = the same legal entity appears twice (or more) in the supplier master under distinct vendor IDs. The records may have variant names, slightly different addresses, possibly different bank accounts. The legal entity is one; the master-data representation is multiple.
+
+**Duplicate payment** = the same invoice (same supplier, same invoice number, same amount, same period) gets paid more than once. Could happen against a single vendor record (e.g., supplier resubmits the invoice with a slight number variation and AP doesn't catch the match) or across two duplicate vendor records (the harder case to detect).
+
+The two are categorically distinct because they sit on different sides of the P2P process and are caught by different controls:
+
+**Duplicate vendor record** is a master-data hygiene issue. Caught by:
+- Periodic vendor-master cleansing routines
+- TIN-based dedupe analytics (anchor on TIN, surface variant names)
+- Maker-checker on new vendor adds
+- Employee-vendor match analytics (employee data crossed against vendor data)
+This regime operates BEFORE invoices are entered. It's a preventive control on the master data.
+
+**Duplicate payment** is a transaction-stream issue. Caught by:
+- (Vendor + invoice number) exact match at invoice entry
+- (Vendor + amount + date within window) fuzzy match
+- Cross-vendor amount + PO match (catches duplicates across two duplicate vendor records — the bridge case)
+- Reverse-amount matching (catches re-billing after a credit memo)
+This regime operates AT invoice entry and is a detective/preventive control on the transaction.
+
+**Why the distinction is operationally important:**
+
+1. **Different ownership.** Master-data hygiene typically sits with a procurement-ops or master-data steward team. Duplicate-payment monitoring sits with AP. Conflating the two leads to ownership confusion and gap.
+
+2. **Different audit evidence.** SOX P2P walkthroughs sample the two regimes separately. A vendor-master walkthrough samples vendor adds; a duplicate-payment walkthrough samples payment runs. Auditors expect distinct evidence trails.
+
+3. **Different remediation paths.** A duplicate vendor record gets fixed by consolidation (with the multi-step pre-merge control sweep — see q_001). A duplicate payment gets fixed by recovery (vendor refund, contra-payable, or write-off if uncollectible).
+
+4. **The bridge case is where both regimes matter.** When a duplicate payment occurs ACROSS two duplicate vendor records, it would have been prevented if the master-data regime had caught the duplicate vendor first. This is why duplicate-payment monitoring should include cross-vendor-ID amount matching as a backstop to master-data hygiene gaps.
+
+Keeping the two distinct in the controls framework, in the audit workpapers, and in role assignments ensures both gaps get coverage rather than each assuming the other will catch it.
+
+### Model response
+
+# Duplicate Vendor Record vs. Duplicate Payment: A Critical Distinction
+
+## Core Definitions
+
+**Duplicate Vendor Record**: Two or more master file entries for the same actual vendor (same entity, different master records)
+
+**Duplicate Payment**: A single vendor record is paid twice for the same invoice or obligation (same obligation, multiple disbursements)
+
+## Key Operational Differences
+
+| Aspect | Duplicate Vendor Record | Duplicate Payment |
+|--------|------------------------|-------------------|
+| **Root Cause** | Data entry error, merger/acquisition, inadequate deduplication | System glitch, processing error, human mistake in payment cycle |
+| **When Detected** | During vendor master file maintenance | During payment processing or reconciliation |
+| **Scope of Risk** | All future transactions with that vendor | Single transaction or invoice |
+| **Correction Complexity** | Requires consolidation; touches historical records | Requires reversal/credit memo |
+
+## Control Regime Implications
+
+### Duplicate Vendor Record Controls
+- **Ownership**: Accounts Payable/Procurement
+- **Mechanisms**: 
+  - Tax ID matching before master file approval
+  - Periodic duplicate analysis (vendor name fuzzy matching)
+  - Single approval gate for vendor creation
+  - Hierarchical vendor hierarchies to prevent parent/subsidiary confusion
+
+### Duplicate Payment Controls
+- **Ownership**: Treasury/Disbursements and Accounts Payable
+- **Mechanisms**:
+  - Invoice number matching (three-way match: PO-receipt-invoice)
+  - Positive pay programs (payment approval flags)
+  - Reconciliation of payments to invoice register
+  - Exception reporting for unusual vendor payment patterns
+
+## Why Separation Matters Operationally
+
+**1. Prevention vs. Detection**
+- Vendor record controls are *preventive* (stop bad data entering the system)
+- Payment controls are *detective* (catch errors before cash leaves)
+
+**2. Organizational Accountability**
+- Vendor master maintenance is a one-time procurement responsibility
+- Payment processing is continuous and owned by finance/treasury—mixing accountability dilutes oversight
+
+**3. System Architecture**
+- Duplicate vendor controls typically sit in the ERP's master data governance layer
+- Duplicate payment controls operate in the cash disbursement sub-ledger—different system features, different audit trails
+
+**4. Cost-Benefit Efficiency**
+- Combining controls creates redundant checks (expensive) or gaps if either fails
+- Separate regimes allow each to be right-sized to its risk
+
+**5. Exception Handling Clarity**
+- If a duplicate payment occurs, you know it's a *transaction processing* failure, not a data quality issue
+- This distinction drives where remediation resources go and prevents blame-shifting between departments
+
+## Practical Example
+
+**Scenario**: ABC Corp entered "Acme Manufacturing Inc." twice in the vendor master (duplicate record). Later, ABC's procurement team paid Invoice #1001 twice using the legitimate vendor record.
+
+- **Control Gap 1**: Vendor deduplication process failed → duplicate master record
+- **Control Gap 2**: Invoice matching process failed → duplicate payment
+
+Investigating only *one* failure would miss the systemic weaknesses in both procurement governance *and* payment integrity. These are distinct control failures requiring different remediation.
+
+---
+
+**Bottom line**: Treating these as a single control issue masks whether your problem is systematic (vendor data quality) or episodic (payment processing error), leading to over-controls in one area and under-controls in another.
+
+### Grader verdict
+
+- **Score:** 1
+- **Confidence:** high
+- **Reasoning:** The response cleanly distinguishes the two phenomena and articulates different control regimes with specific controls in each (TIN matching, fuzzy matching for vendor records; three-way match, positive pay, reconciliation for payments). It addresses multiple operational-importance reasons including ownership separation, system architecture/audit trails, and exception handling. However, it misses the critical bridge case—where a duplicate payment occurs ACROSS two duplicate vendor records, which is the hardest case to detect and the reason cross-vendor-ID amount matching is needed as a backstop. The practical example actually shows the two issues as independent rather than as the bridge case. Per the rubric, missing the bridge case caps the score at 1.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_018 — close_and_controls · hard · **score 1/2** (model: `claude-opus-4-7`)
+
+_Expected failure mode: control framework reasoning under SOX (multi-tier diagnosis)_
+
+### Question
+
+An improper payment was made. The same observable outcome ($X to wrong supplier or wrong amount) could be the result of a tactical 3-way-match exception that AP missed, OR a SOX P2P control design failure. The IT and audit treatment of these two diagnoses is very different. Explain the canonical hierarchy of control failures (transaction-level → policy-level → design-level), what evidence distinguishes each, and why it matters which diagnosis applies.
+
+### Rubric
+
+- **0**: Conflates the three tiers, OR fails to identify that the same observable can have different diagnoses, OR misses the audit / disclosure / remediation differences entirely
+- **1**: Distinguishes the three tiers but does not address the bottom-up investigation order, OR misses the audit/disclosure thresholds (control deficiency / significant deficiency / material weakness), OR gives only one of the four 'why it matters' reasons
+- **2**: Distinguishes all three tiers with concrete examples, addresses the audit / disclosure / remediation hierarchy (control deficiency → significant deficiency → material weakness), explains the bottom-up investigation order, gives a worked example showing the same observable resolving differently across tiers, and references the relevant audit framework (AS 2201 / COSO)
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] The canonical control-failure hierarchy goes from narrowest to broadest:
+
+**Tier 1 — Transaction-level failure (a single control instance failed to operate).**
+The control existed and was designed correctly, but in this specific transaction it didn't catch the issue. Example: 3-way match was supposed to flag the price variance but the AP clerk overrode it without proper documentation. The clerk's override is the failure point.
+
+Evidence: the audit trail shows the control SHOULD have triggered (the variance was within the configured threshold), AND it shows manual override or bypass. The control configuration itself is correct.
+
+Remediation: re-train the operator, tighten override authority, add maker-checker on overrides. Narrow remediation, narrow disclosure.
+
+**Tier 2 — Policy-level failure (the control is designed correctly but the policy that governs it has a gap).**
+The control as designed wouldn't have caught this fact pattern because the policy didn't anticipate the scenario. Example: 3-way match was configured for goods POs but services POs were exempted by policy without compensating control; an improper payment on a services PO slips through.
+
+Evidence: the audit trail shows the control did not trigger BECAUSE the transaction was out of the policy scope. No bypass occurred — the policy itself is the gap.
+
+Remediation: rewrite the policy to close the carve-out, add the compensating control, document the change. Broader remediation: every transaction in the policy gap window may need lookback review.
+
+**Tier 3 — Design-level failure (the control framework itself is structurally inadequate).**
+The control as conceived cannot prevent the class of issue that occurred. Example: a single AP clerk has vendor-master add + invoice approval + payment initiation entitlements. The 3-way match working perfectly does not stop this person from creating a ghost vendor and routing payments to themselves — that's not what 3-way match controls. The SoD design is the failure.
+
+Evidence: the audit trail may show no individual control fired or failed; the loss occurred *between* controls or *outside* their scope. The framework, not the operation, is the gap.
+
+Remediation: redesign the control framework — entitlement architecture, SoD matrix, ITGC review cadence. Broadest remediation. Material weakness assessment. SOX 404 disclosure consideration. Possible restatement.
+
+**Why the diagnosis matters:**
+
+1. **Audit treatment.** Tier-1 is a 'control deficiency.' Tier-2 is typically a 'significant deficiency.' Tier-3 is most likely a 'material weakness.' Each has different SOX disclosure thresholds and different external-auditor responses.
+
+2. **Disclosure.** Material weakness requires Form 10-K Item 9A disclosure and adverse ICFR opinion; significant deficiency may not require external disclosure but requires audit committee communication. Control deficiency may stay in internal-audit workpapers.
+
+3. **Scope of remediation effort.** Tier-1 affects one role/process. Tier-2 affects every transaction in the policy gap window — lookback scope is significant. Tier-3 affects every transaction the design failure could have enabled — lookback scope is comprehensive (per the q_010 fact pattern, this is what drives the 24-36-month all-vendor lookback).
+
+4. **Investigation methodology.** Tier-1 is a process review (interview the clerk, review the override). Tier-2 is a policy review (compare written policy to the risk universe). Tier-3 is an architecture review (entitlement model, SoD matrix, ITGC) and typically pulls in IT audit, IS security, and possibly external counsel.
+
+5. **Where the same observable can be diagnosed differently.** A duplicate-payment fact pattern could be Tier-1 if the AP clerk missed an obvious match the system flagged; Tier-2 if the duplicate-detection rules don't cover cross-vendor-ID matching (a policy gap); Tier-3 if the same person who added the duplicate vendor is also approving payments (an SoD design gap that enabled the duplicate vendor in the first place). The diagnosis drives whether you fix the operator, the policy, or the architecture — and getting the diagnosis wrong leads to either over- or under-remediation.
+
+The canonical investigation order is bottom-up: confirm Tier-1 first (was this an operator failure?), only escalate to Tier-2 if the operator-failure hypothesis doesn't fit (the system should have caught it but the configuration didn't), and only escalate to Tier-3 if the policy-failure hypothesis doesn't fit (the configuration was right but the framework was inadequate).
+
+References: PCAOB AS 2201 (definitions of control deficiency, significant deficiency, material weakness); COSO 2013 framework Component 4 'Control Activities' and Component 5 'Monitoring Activities'; SEC Regulation S-K Item 308.
+
+### Model response
+
+# The Canonical Hierarchy of Control Failures in P2P
+
+When an improper payment surfaces, the audit/IT response depends entirely on *which layer* of the control stack failed. Treating a design failure as an operating failure (or vice versa) is one of the most common — and most expensive — mistakes in SOX 404 remediation, because it determines scope, materiality assessment, and disclosure obligations.
+
+## The Three-Tier Hierarchy
+
+### Tier 1 — Transaction-Level (Operating Effectiveness) Failure
+**Definition:** The control was properly designed, was in place, and *should* have caught the error, but a specific instance of execution failed. The control framework is sound; a human or automated step misfired once (or a small, bounded number of times).
+
+**Examples in P2P:**
+- AP clerk overrode a 3-way-match exception flag without proper review.
+- A duplicate invoice was paid because the clerk keyed a slightly different invoice number, defeating the ERP duplicate check.
+- Approver clicked through a workflow without reviewing supporting documentation.
+
+**Evidence that points here:**
+- The control *exists* in the system (configurable tolerance, mandatory match, segregation enforced in roles).
+- Other transactions in the population *did* trigger the control correctly.
+- Logs show the exception was raised but mishandled, or the override field was used.
+- Sampling shows a low deviation rate (within tolerable thresholds, e.g., < ~5–10% depending on frequency).
+
+**Treatment:** Operating deficiency. Generally remediable through retraining, supervision, or tightening of override permissions. Usually does *not* require restating the control conclusion if isolated and compensating controls exist.
+
+---
+
+### Tier 2 — Policy-Level Failure
+**Definition:** The control performed exactly as specified, but the *policy it enforces* is wrong, stale, or inconsistent with risk. The system did what it was told; what it was told was inadequate.
+
+**Examples in P2P:**
+- Tolerance thresholds (e.g., $500 or 10% price variance) are too loose, so the 3-way-match passed a genuinely improper invoice.
+- Vendor master maintenance policy doesn't require re-validation of bank details, so a payment routed correctly per policy went to a fraudulent account.
+- Delegation-of-authority matrix permits a manager to approve payments to a vendor they onboarded — policy gap, not execution gap.
+- Policy carves out "emergency vendors" with no PO requirement; the carve-out itself is the hole.
+
+**Evidence that points here:**
+- The control log shows *no exception* — the transaction passed cleanly.
+- The configuration matches the documented policy.
+- Reviewing similar transactions reveals a *systematic* pattern (not isolated).
+- Root-cause analysis traces back to a written policy, threshold table, or approval matrix that authorized the behavior.
+
+**Treatment:** Typically a deficiency in the **control environment / policy layer**. Remediation requires policy revision, re-baselining of thresholds, and often re-testing of historical population because the gap was open across all transactions during the period.
+
+---
+
+### Tier 3 — Design-Level (SOX) Failure
+**Definition:** The control, even if operating perfectly to its policy, *cannot* achieve the assertion it is mapped to. There is a structural defect in the control architecture: a missing control, an unmitigated risk in the risk-and-control matrix (RACM), or a control whose logic does not address the financial-statement assertion (existence, accuracy, completeness, valuation, cutoff, rights/obligations).
+
+**Examples in P2P:**
+- No control exists to detect a payment to a vendor whose bank details were changed *after* PO approval but *before* payment release. The 3-way-match was never designed to catch this — it's outside its scope.
+- The same individual can create a vendor, raise a PO, approve the invoice, and release payment because SoD was never configured into the role design.
+- 3-way-match is configured only for goods POs, not service POs, leaving an entire transaction class unmatched.
+- No control covers non-PO invoices above materiality — the design simply has a gap.
+
+**Evidence that points here:**
+- Walkthroughs and the RACM show *no control* is mapped to the risk that materialized.
+- Even a perfectly executed run of every existing control would not have prevented or detected the error.
+- The improper payment exploited a path that the control narrative does not contemplate.
+- IT general controls (ITGCs) — change management, access provisioning, configuration — may also be implicated if the design gap stems from unauthorized config drift.
+
+**Treatment:** This is the most serious finding. Under PCAOB AS 2201 / SOX 404, a design deficiency typically escalates to **significant deficiency or material weakness** depending on magnitude and likelihood, because the *potential* misstatement is not bounded by a single failure — every transaction in scope is exposed. Requires:
+- New control design and implementation.
+- Management's reassessment of ICFR effectiveness.
+- Possible 8-K disclosure (Item 4.02 in extreme cases).
+- External auditor re-scoping.
+
+---
+
+## How to Distinguish Them — The Diagnostic Test
+
+| Question | Tier 1 (Operating) | Tier 2 (Policy) | Tier 3 (Design) |
+|---|---|---|---|
+| Did the control fire? | Yes, but was overridden/ignored | No — transaction passed | No — no control exists for this risk |
+| Is the configuration correct per policy? | Yes | Yes | N/A — gap in RACM |
+| Is the policy itself adequate? | Yes | **No** | May or may not be relevant |
+| Is the risk mapped in the RACM? | Yes | Yes | **No** |
+| Would re-running the control prevent recurrence? | Yes (with discipline) | No (need policy change) | No (need new control) |
+| Population exposure | Isolated | Systematic within policy scope | Entire risk universe unprotected |
+
+---
+
+## Why the Diagnosis Matters
+
+1. **Scope of remediation.** Tier 1 is local (retrain a clerk). Tier 2 requires policy
+
+### Grader verdict
+
+- **Score:** 1
+- **Confidence:** high
+- **Reasoning:** The response distinguishes all three tiers with concrete P2P examples, provides a useful diagnostic table, and references PCAOB AS 2201 and SOX 404. However, the response is truncated at 'Tier 2 requires policy' and does not complete the 'Why the diagnosis matters' section. As a result, it does not fully address the bottom-up investigation order, does not clearly articulate the audit hierarchy mapping (control deficiency → significant deficiency → material weakness — it only mentions material weakness for Tier 3), does not provide the worked example showing the same observable resolving differently across tiers, and gives only a partial 'why it matters' discussion. This meets the Tier-1 distinction criteria but misses several key elements required for a 2.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_018 — close_and_controls · hard · **score 1/2** (model: `claude-sonnet-4-6`)
+
+_Expected failure mode: control framework reasoning under SOX (multi-tier diagnosis)_
+
+### Question
+
+An improper payment was made. The same observable outcome ($X to wrong supplier or wrong amount) could be the result of a tactical 3-way-match exception that AP missed, OR a SOX P2P control design failure. The IT and audit treatment of these two diagnoses is very different. Explain the canonical hierarchy of control failures (transaction-level → policy-level → design-level), what evidence distinguishes each, and why it matters which diagnosis applies.
+
+### Rubric
+
+- **0**: Conflates the three tiers, OR fails to identify that the same observable can have different diagnoses, OR misses the audit / disclosure / remediation differences entirely
+- **1**: Distinguishes the three tiers but does not address the bottom-up investigation order, OR misses the audit/disclosure thresholds (control deficiency / significant deficiency / material weakness), OR gives only one of the four 'why it matters' reasons
+- **2**: Distinguishes all three tiers with concrete examples, addresses the audit / disclosure / remediation hierarchy (control deficiency → significant deficiency → material weakness), explains the bottom-up investigation order, gives a worked example showing the same observable resolving differently across tiers, and references the relevant audit framework (AS 2201 / COSO)
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] The canonical control-failure hierarchy goes from narrowest to broadest:
+
+**Tier 1 — Transaction-level failure (a single control instance failed to operate).**
+The control existed and was designed correctly, but in this specific transaction it didn't catch the issue. Example: 3-way match was supposed to flag the price variance but the AP clerk overrode it without proper documentation. The clerk's override is the failure point.
+
+Evidence: the audit trail shows the control SHOULD have triggered (the variance was within the configured threshold), AND it shows manual override or bypass. The control configuration itself is correct.
+
+Remediation: re-train the operator, tighten override authority, add maker-checker on overrides. Narrow remediation, narrow disclosure.
+
+**Tier 2 — Policy-level failure (the control is designed correctly but the policy that governs it has a gap).**
+The control as designed wouldn't have caught this fact pattern because the policy didn't anticipate the scenario. Example: 3-way match was configured for goods POs but services POs were exempted by policy without compensating control; an improper payment on a services PO slips through.
+
+Evidence: the audit trail shows the control did not trigger BECAUSE the transaction was out of the policy scope. No bypass occurred — the policy itself is the gap.
+
+Remediation: rewrite the policy to close the carve-out, add the compensating control, document the change. Broader remediation: every transaction in the policy gap window may need lookback review.
+
+**Tier 3 — Design-level failure (the control framework itself is structurally inadequate).**
+The control as conceived cannot prevent the class of issue that occurred. Example: a single AP clerk has vendor-master add + invoice approval + payment initiation entitlements. The 3-way match working perfectly does not stop this person from creating a ghost vendor and routing payments to themselves — that's not what 3-way match controls. The SoD design is the failure.
+
+Evidence: the audit trail may show no individual control fired or failed; the loss occurred *between* controls or *outside* their scope. The framework, not the operation, is the gap.
+
+Remediation: redesign the control framework — entitlement architecture, SoD matrix, ITGC review cadence. Broadest remediation. Material weakness assessment. SOX 404 disclosure consideration. Possible restatement.
+
+**Why the diagnosis matters:**
+
+1. **Audit treatment.** Tier-1 is a 'control deficiency.' Tier-2 is typically a 'significant deficiency.' Tier-3 is most likely a 'material weakness.' Each has different SOX disclosure thresholds and different external-auditor responses.
+
+2. **Disclosure.** Material weakness requires Form 10-K Item 9A disclosure and adverse ICFR opinion; significant deficiency may not require external disclosure but requires audit committee communication. Control deficiency may stay in internal-audit workpapers.
+
+3. **Scope of remediation effort.** Tier-1 affects one role/process. Tier-2 affects every transaction in the policy gap window — lookback scope is significant. Tier-3 affects every transaction the design failure could have enabled — lookback scope is comprehensive (per the q_010 fact pattern, this is what drives the 24-36-month all-vendor lookback).
+
+4. **Investigation methodology.** Tier-1 is a process review (interview the clerk, review the override). Tier-2 is a policy review (compare written policy to the risk universe). Tier-3 is an architecture review (entitlement model, SoD matrix, ITGC) and typically pulls in IT audit, IS security, and possibly external counsel.
+
+5. **Where the same observable can be diagnosed differently.** A duplicate-payment fact pattern could be Tier-1 if the AP clerk missed an obvious match the system flagged; Tier-2 if the duplicate-detection rules don't cover cross-vendor-ID matching (a policy gap); Tier-3 if the same person who added the duplicate vendor is also approving payments (an SoD design gap that enabled the duplicate vendor in the first place). The diagnosis drives whether you fix the operator, the policy, or the architecture — and getting the diagnosis wrong leads to either over- or under-remediation.
+
+The canonical investigation order is bottom-up: confirm Tier-1 first (was this an operator failure?), only escalate to Tier-2 if the operator-failure hypothesis doesn't fit (the system should have caught it but the configuration didn't), and only escalate to Tier-3 if the policy-failure hypothesis doesn't fit (the configuration was right but the framework was inadequate).
+
+References: PCAOB AS 2201 (definitions of control deficiency, significant deficiency, material weakness); COSO 2013 framework Component 4 'Control Activities' and Component 5 'Monitoring Activities'; SEC Regulation S-K Item 308.
+
+### Model response
+
+# Canonical Hierarchy of P2P Control Failures: Diagnostic Framework
+
+## I. The Core Diagnostic Problem
+
+The observable fact—*payment went to wrong vendor or wrong amount*—is **equifinal**: multiple distinct causal chains produce the same symptom. Treating a design failure as a transaction exception wastes resources and leaves the organization perpetually exposed. Treating a transaction exception as a design failure triggers disproportionate remediation, SOX restatement risk, and potential material weakness disclosure. Getting the diagnosis right is not administrative tidiness; it has audit, financial reporting, and regulatory consequences.
+
+---
+
+## II. The Three-Level Hierarchy of Control Failures
+
+### Level 1 — Transaction-Level (Execution) Failure
+
+**Definition:** The control *existed*, was *designed correctly*, and was *operative*—but the individual transaction was not processed in conformance with it. A human or system actor deviated from the prescribed procedure on *this specific instance*.
+
+**Canonical P2P example:**
+- 3-way match was configured in ERP; invoice tolerance thresholds were set; workflow routing was active.
+- AP clerk overrode a system hold, approved a price variance outside tolerance, or simply keyed wrong data.
+- The exception is *isolated and traceable* to that clerk's action on that date.
+
+**What this is NOT:** A systemic control failure. The control worked in the other 4,000 transactions processed that period.
+
+---
+
+### Level 2 — Policy/Compliance (Operating Effectiveness) Failure
+
+**Definition:** The control exists and is designed correctly, but it is *not being consistently followed* across a population of transactions. The control is operative on paper but failing in practice—a behavioral or governance gap, not an architectural one.
+
+**Canonical P2P example:**
+- 3-way match policy requires all POs >$5,000 to have signed receipt confirmation before payment release.
+- Testing reveals that 35% of sampled invoices in that range were paid without matched receiving reports.
+- No single actor is responsible; the failure pattern is systemic across multiple approvers or business units.
+- The *design* (the written policy, the ERP configuration) is sound; *execution* across the population is not.
+
+This level is where **SOX operating effectiveness deficiencies** typically manifest—and where PCAOB AS 2201 draws the distinction between a *significant deficiency* and a *material weakness* based on likelihood and magnitude of misstatement.
+
+---
+
+### Level 3 — Design-Level (Control Design) Failure
+
+**Definition:** The control as *designed* is insufficient to prevent or detect the risk even if followed perfectly. No amount of diligent execution of the stated procedure would have caught the improper payment. The architecture of the control is flawed.
+
+**Canonical P2P examples:**
+- 3-way match is configured but tolerance bands are set so wide (+/−15% on unit price, no cap on total variance) that a fraudulent invoice for $2.1M passes auto-approval against a $2.0M PO.
+- Segregation of duties matrix allows a single user role to create vendor, create PO, and approve payment in one system profile.
+- The ERP enforces match only on PO line count, not on unit price or total amount—so quantity match passes while price manipulation succeeds.
+- No compensating control (management review of variance reports, vendor master change audits) exists downstream.
+
+This is the canonical **SOX control design deficiency**: the control could never have worked, regardless of operator diligence.
+
+---
+
+## III. Evidentiary Standards That Distinguish Each Level
+
+| Evidence Dimension | Level 1 (Transaction) | Level 2 (Policy/Operating) | Level 3 (Design) |
+|---|---|---|---|
+| **Population testing** | Single or rare isolated instance; all other transactions conform | Pattern across multiple transactions/periods; statistically significant exception rate | *All* transactions subject to the control are theoretically exposed; failure rate is irrelevant—the control cannot work |
+| **Control configuration audit** | ERP logs show control was active, properly configured, correct thresholds | ERP logs show control active; workflow bypasses or manual overrides are frequent | Configuration review, design documentation, or walkthroughs reveal the control specification itself is deficient |
+| **User access/role review** | Proper SOD in place; single actor with appropriate access deviated | Proper SOD in place; multiple actors deviated consistently | SOD violation is *built into the role matrix*; no single actor is uniquely culpable |
+| **Audit trail evidence** | Override log entry with specific user/timestamp; one-off exception | Override log shows recurring pattern across users; or no log entries exist because bypasses were normalized | Override not required—the transaction passed *cleanly through* all controls; no exception flag was raised |
+| **Recurrence pattern** | Not recurrent; first offense or rare | Recurrent across reporters, periods, or entities | Every transaction in scope is potentially affected; detection by exception testing is impossible within the control |
+| **Root cause interview** | "I knew the rule; I made a mistake / chose to deviate" | "We weren't trained" / "That's how we've always done it" / "The manager told us to get invoices out" | "I followed the procedure exactly"—the procedure itself would not catch this scenario |
+| **Control gap in flowchart** | No gap in the designed process flow | No gap in the designed process flow; gap is in execution | Gap visible in process design documentation, RACI, system configuration spec |
+| **Prior period comparability** | Prior periods clean | Prior periods show similar exception rates | Prior periods *also* clean in detected exceptions—because the control *never* would have flagged this |
+
+---
+
+## IV. Why the Diagnosis Determines Everything Downstream
+
+### A. IT/System Remediation Scope
+
+| Diagnosis | IT Action Required |
+|---|---|
+| Transaction failure | None required to the control itself. Possibly: user access review, re-training, disciplinary action. ERP configuration unchanged. |
+| Policy/operating failure | Possibly: system enforcement tightening (reduce manual override permissions), workflow hardening, automated escalation rules. IT change management ticket scope is *narrow and targeted*. |
+| Design failure | **Mandatory control redesign.** ERP configuration change, potentially requiring full SDLC/change management cycle, UAT, re-documentation of control description, update to control matrix. May require interim compensating controls during remediation window. |
+
+A design failure treated as a transaction error means the redesign never happens—the organization continues to issue the same SOX representation about a control that *cannot work*.
+
+---
+
+### B. SOX Implications (AS 2201 / COSO Framework)
+
+**If it's a transaction error:**
+- Not a control deficiency at all under SOX unless the error itself represents a financial statement misstatement above threshold.
+- Correcting entry; no impact to management's assessment of ICFR.
+- External auditor testing of the control would find it operative; control reliance holds.
+
+**If it's an operating effectiveness failure:**
+- Constitutes a **control deficiency** under PCAOB AS 2201.
+- Severity determination: *significant deficiency* (more than remote possibility of more-than-inconsequential misstatement) or *material weakness* (reasonable possibility of material misstatement).
+- Must be evaluated at the *population level* for aggregate exposure.
+- Management must document, remediate *before year-end* if possible, or disclose in 10-K/annual report internal control assessment.
+- Auditor cannot place reliance on the control; must perform *substantive procedures* to cover the gap.
+
+**If it's a design deficiency:**
+- Under COSO and AS 2201, **a control that is not designed to achieve its objective is a deficiency regardless of whether a misstatement occurred.**
+- Design deficiency is frequently the more severe classification because it implies the control *never provided assurance*—not just that it failed intermittently.
+- Requires retroactive consideration: was the control ineffective in prior periods? Does this affect prior representations?
+- External auditor must: (1) not rely on the control for *any* period, (2) expand substantive testing, (3) evaluate whether aggregation with other deficiencies creates a material weakness.
+- **IT general controls (ITGCs)** come into scope if the design flaw exists in system configuration—because the reliability of system-generated reports used in financial reporting is now in question.
+
+---
+
+### C. Fraud vs. Error Bifurcation
+
+The hierarchy also informs the auditor's obligation under **AU-C Section 240 / ISA 240**:
+
+- **Transaction failure** with indicators of intentionality (e.g., vendor master manipulation, split invoices just below approval thresholds) → **fraud risk indicator**; escalate to forensic investigation, potential FCPA/regulatory exposure.
+- **Policy failure** with no intentionality → management override risk, tone
+
+### Grader verdict
+
+- **Score:** 1
+- **Confidence:** high
+- **Reasoning:** The response distinguishes all three tiers with concrete P2P examples, provides extensive evidence tables, and addresses audit/disclosure/remediation differences. It references AS 2201 and COSO. However, it has two notable gaps relative to the rubric for a 2: (1) It does NOT explain the bottom-up investigation order (confirm Tier-1 first, escalate only if hypothesis doesn't fit). (2) It does not provide a worked example showing the same observable resolving differently across all three tiers — while it gives separate examples per tier, it doesn't walk through one fact pattern (like the duplicate payment) being diagnosed three different ways. Additionally, the candidate's Tier 2 framing diverges somewhat from the ideal (it frames Tier 2 as operating effectiveness/non-compliance rather than policy scope gaps), though this is a defensible alternative taxonomy. Given the missing investigation order and missing cross-tier worked example, this fits the '1' criteria.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
 ## q_002 — invoice_processing · easy · **score 2/2** (model: `claude-opus-4-7`)
 
 _Expected failure mode: applying domain conventions_
@@ -6867,6 +7425,702 @@ AP must coordinate with the customs broker and supply chain/trade compliance **b
 - **Score:** 2
 - **Confidence:** medium
 - **Reasoning:** The response correctly identifies that Section 301 tariffs are the buyer's cost paid to CBP, not the supplier's, and that the missing tariff line is not a supplier error. It cites 19 USC §1484 importer of record responsibility, prescribes independent HTS classification verification, addresses country of origin verification including substantial transformation, and structures the response as a control/verification workflow. It addresses USTR exclusions and current rate review status. However, it does not explicitly raise the 8541 vs 8542 sub-classification distinction (microcontrollers arguably belong under 8542.31 as integrated circuits rather than 8541.59 as transistors) — this is the specific classification challenge called out in the rubric. It also omits First Sale, FTZ, and drawback considerations. Given the strong §1484 coverage, COO analysis, and control workflow, but missing the specific 8541/8542 distinction and First Sale/FTZ/drawback, this sits between 1 and 2. The rubric for 2 requires raising the 8541 vs 8542 question AND addressing First Sale/FTZ/drawback — both are missing or weak, so this is closer to a 1.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_016 — invoice_processing · easy · **score 2/2** (model: `claude-opus-4-7`)
+
+_Expected failure mode: applying domain conventions (stock-flow accounting principle)_
+
+### Question
+
+Accounts Payable Days (also called Days Payables Outstanding, DPO) is computed using the AVERAGE accounts-payable balance over the period rather than the ending balance. Why? What problem does the averaging convention solve, and what would go wrong if a junior analyst used the ending AP balance instead?
+
+### Rubric
+
+- **0**: Says ending AP is correct, OR fails to identify the stock/flow distinction, OR gives a definition without explaining the averaging convention
+- **1**: Identifies that average AP is correct but does not articulate the stock/flow consistency reasoning, OR misses the end-of-period-anomaly distortion, OR gives the formula without the principle
+- **2**: Articulates the stock/flow consistency principle as the underlying reason, identifies end-of-period anomalies as the concrete distortion that averaging solves, addresses comparability across firms, and references the canonical formula with the average-AP convention
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] DPO uses the AVERAGE accounts-payable balance because it reconciles a stock measure (AP, a balance-sheet item that exists as a snapshot) with a flow measure (purchases or COGS, an income-statement item that accumulates over a period). The averaging convention converts the stock measure into something comparable to the flow measure by representing the typical AP level throughout the period rather than a single point-in-time snapshot.
+
+What goes wrong with ending AP:
+
+1. **End-of-period anomalies distort the metric.** A company that pushes invoices out the door in the last week of the year (to compress AP for working-capital reporting) or holds invoices in the last week (to stretch DPO) will produce an ending balance that does not reflect typical operations. Average AP smooths these end-effects.
+
+2. **Consistency between numerator and denominator.** Purchases or COGS is an over-the-period number. If the denominator covers the full period, the numerator should represent the period too — average AP does that; ending AP doesn't.
+
+3. **Comparability across companies.** Different firms close their books on different cycles; ending AP varies systematically with fiscal calendar. Averaged AP is more comparable.
+
+4. **Audit defensibility.** Stock/flow consistency is a documented accounting principle (Holthausen & Zmijewski 2014). Using ending AP without disclosure invites a sourcing-quality challenge during diligence.
+
+The canonical formula is therefore: DPO = (Average AP / Purchases) × N, where 'Average AP' is typically (Beginning AP + Ending AP) / 2 for annual analysis or a more granular average (monthly average) for shorter-period analysis. Some firms use COGS in the denominator instead of Purchases as a practical proxy when Purchases isn't disclosed; the stock/flow consistency principle still requires averaging.
+
+### Model response
+
+# Why DPO Uses Average Accounts Payable
+
+## The Core Reasoning
+
+Days Payables Outstanding measures a **flow-to-stock relationship**: it compares a flow variable (Cost of Goods Sold or purchases, accumulated *over* a period) against a stock variable (Accounts Payable, measured *at a point* in time).
+
+The standard formula is:
+
+$$DPO = \frac{\text{Average AP}}{\text{COGS (or Purchases)}} \times \text{Days in Period}$$
+
+The averaging convention exists to make the numerator and denominator **temporally consistent**. COGS represents activity spread across the entire period (e.g., 365 days). The ending AP balance is a single snapshot taken at one instant — typically the last second of the fiscal year. Pairing a full-year flow with a single year-end snapshot is an apples-to-oranges comparison.
+
+By using the average of beginning and ending AP (or, ideally, an average of monthly/quarterly balances), the numerator approximates the *typical* AP balance the company carried while it was generating that COGS. That is the figure you actually want to convert into "days."
+
+## What Problem Averaging Solves
+
+Three specific distortions are mitigated:
+
+1. **Window-dressing and balance-sheet seasonality.** Year-end balances are notoriously unrepresentative. Companies often pay down payables aggressively before fiscal year-end to present a cleaner balance sheet, or conversely stretch payables to conserve cash. Either behavior makes the snapshot atypical of the year as a whole.
+
+2. **Growth and structural shifts.** If a company grew (or contracted) substantially during the period, the ending AP reflects the *new* business scale, while COGS reflects a blend of the old and new scale. Averaging beginning and ending AP produces a balance that is roughly contemporaneous with the average level of activity that drove COGS.
+
+3. **One-off events near period-end.** A large purchase booked the week before year-end, a dispute with a major supplier, an acquisition, or an FX revaluation can swing the ending balance dramatically without reflecting how the firm actually managed payables across the year.
+
+## What Goes Wrong With the Ending Balance
+
+A junior analyst plugging in ending AP will produce DPO figures that are systematically misleading in predictable ways:
+
+- **Inflated DPO** when the firm ramped up purchases late in the period, made an acquisition, or simply grew. The analyst will conclude the company is stretching suppliers when in fact the AP balance is high merely because the business is bigger.
+- **Deflated DPO** when management paid down payables for window dressing. The analyst will conclude payment terms tightened when they did not.
+- **Spurious volatility in trend analysis.** Year-over-year DPO comparisons will fluctuate based on snapshot noise rather than underlying payment behavior, masking real trends in supplier credit usage.
+- **Distorted cash conversion cycle.** Because DPO feeds into CCC = DIO + DSO − DPO, errors propagate. An overstated DPO understates the cash conversion cycle and can make working-capital efficiency look better than it is — a meaningful issue in credit analysis, valuation (free cash flow forecasts), and covenant compliance work.
+- **Unreliable peer benchmarking.** Two companies with identical payment practices but different fiscal year-ends or seasonal patterns will appear to have very different DPOs if ending balances are used.
+- **Misdirected operational decisions.** If treasury or procurement uses the metric to evaluate supplier-payment policy, a snapshot-based DPO can prompt corrective action against a problem that does not exist (or, worse, hide one that does).
+
+## Practical Note
+
+The two-point average (beginning + ending)/2 is the textbook compromise, but it still assumes a roughly linear path between the two dates. For businesses with strong seasonality (retail, agriculture, construction), best practice is to average monthly or quarterly AP balances, which more faithfully reflects the AP carried alongside the COGS being matched. The same temporal-consistency principle is why DSO uses average AR and inventory days uses average inventory — it is a general rule for any ratio mixing a balance-sheet stock with an income-statement flow.
+
+### Grader verdict
+
+- **Score:** 2
+- **Confidence:** high
+- **Reasoning:** The response clearly articulates the stock/flow consistency principle (calling it 'flow-to-stock relationship' and 'temporal consistency'), identifies end-of-period anomalies/window-dressing as concrete distortions averaging solves, addresses cross-firm comparability (peer benchmarking with different fiscal year-ends), and provides the canonical formula with the average-AP convention. It also extends to the general principle for DSO and inventory days.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_016 — invoice_processing · easy · **score 2/2** (model: `claude-sonnet-4-6`)
+
+_Expected failure mode: applying domain conventions (stock-flow accounting principle)_
+
+### Question
+
+Accounts Payable Days (also called Days Payables Outstanding, DPO) is computed using the AVERAGE accounts-payable balance over the period rather than the ending balance. Why? What problem does the averaging convention solve, and what would go wrong if a junior analyst used the ending AP balance instead?
+
+### Rubric
+
+- **0**: Says ending AP is correct, OR fails to identify the stock/flow distinction, OR gives a definition without explaining the averaging convention
+- **1**: Identifies that average AP is correct but does not articulate the stock/flow consistency reasoning, OR misses the end-of-period-anomaly distortion, OR gives the formula without the principle
+- **2**: Articulates the stock/flow consistency principle as the underlying reason, identifies end-of-period anomalies as the concrete distortion that averaging solves, addresses comparability across firms, and references the canonical formula with the average-AP convention
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] DPO uses the AVERAGE accounts-payable balance because it reconciles a stock measure (AP, a balance-sheet item that exists as a snapshot) with a flow measure (purchases or COGS, an income-statement item that accumulates over a period). The averaging convention converts the stock measure into something comparable to the flow measure by representing the typical AP level throughout the period rather than a single point-in-time snapshot.
+
+What goes wrong with ending AP:
+
+1. **End-of-period anomalies distort the metric.** A company that pushes invoices out the door in the last week of the year (to compress AP for working-capital reporting) or holds invoices in the last week (to stretch DPO) will produce an ending balance that does not reflect typical operations. Average AP smooths these end-effects.
+
+2. **Consistency between numerator and denominator.** Purchases or COGS is an over-the-period number. If the denominator covers the full period, the numerator should represent the period too — average AP does that; ending AP doesn't.
+
+3. **Comparability across companies.** Different firms close their books on different cycles; ending AP varies systematically with fiscal calendar. Averaged AP is more comparable.
+
+4. **Audit defensibility.** Stock/flow consistency is a documented accounting principle (Holthausen & Zmijewski 2014). Using ending AP without disclosure invites a sourcing-quality challenge during diligence.
+
+The canonical formula is therefore: DPO = (Average AP / Purchases) × N, where 'Average AP' is typically (Beginning AP + Ending AP) / 2 for annual analysis or a more granular average (monthly average) for shorter-period analysis. Some firms use COGS in the denominator instead of Purchases as a practical proxy when Purchases isn't disclosed; the stock/flow consistency principle still requires averaging.
+
+### Model response
+
+# Accounts Payable Days (DPO) and the Averaging Convention
+
+## The Core Formula
+
+$$\text{DPO} = \frac{\text{Accounts Payable}}{\text{COGS / Days}}= \frac{\text{Accounts Payable} \times \text{Days in Period}}{\text{COGS}}$$
+
+The question is: which AP figure belongs in the numerator?
+
+---
+
+## Why the Balance Sheet Is a "Snapshot" Problem
+
+The income statement (COGS) measures a **flow** over an entire period—say, 365 days of purchasing activity. The balance sheet AP figure is a **stock** measured at a single instant in time (the last second of December 31, for example).
+
+These two numbers live on different temporal planes. To make a ratio meaningful, you need the stock variable to be **representative of the same period** the flow variable covers. A single end-of-period snapshot is often *not* representative of the whole period.
+
+---
+
+## What the Averaging Convention Solves
+
+### 1. Matching the Balance to the Period
+
+The average AP balance—typically **(Beginning AP + Ending AP) / 2**—is a simple approximation of the **time-weighted average level of payables that existed throughout the period**. This makes it conceptually consistent with the full-year COGS figure in the denominator.
+
+Think of it this way: COGS "used up" payables capacity steadily across the year. The relevant AP balance is the one that *supported* that activity, not the one that happened to exist at year-end.
+
+### 2. Controlling for Seasonal and Timing Distortions
+
+Many businesses have highly seasonal purchasing patterns. A retailer's AP balance at December 31 may be abnormally **low** (it just paid off holiday inventory it bought in Q3/Q4) or abnormally **high** (it is still sitting on late-December deliveries). Either extreme makes the ending balance unrepresentative.
+
+By averaging beginning and ending, you capture at least two data points that bracket the year, damping out extreme end-of-period positions.
+
+### 3. Removing Management's Ability to "Window Dress" the Ratio
+
+A company that wants to show faster payment (lower DPO—perhaps to look like a good customer or to hit a covenant) can simply time a large payment right before year-end. Similarly, a company that wants to show it is conserving cash can delay payments strategically. Averaging makes such one-day manipulations only **half as powerful**, because the beginning balance is outside management's current-period control.
+
+### 4. Consistency with How Other Turnover Metrics Are Computed
+
+DPO is part of a family of metrics—DSO (receivables days), DIO (inventory days), and the Cash Conversion Cycle. All of them conventionally use average balances. Using averages for AR and inventory but the ending balance for AP would make the CCC internally inconsistent and not comparable across companies or across time.
+
+---
+
+## What Goes Wrong If a Junior Analyst Uses the Ending Balance
+
+| Scenario | Effect on Ending-AP DPO | Reality |
+|---|---|---|
+| Company pays down AP aggressively in December (window dressing) | DPO **understated** — looks like a fast payer | Payments were actually slower all year |
+| Company deliberately delays year-end payments | DPO **overstated** — looks like a slow payer | Cash management was actually tighter all year |
+| Business is growing rapidly (AP naturally higher at year-end) | DPO **overstated** — denominator (COGS) grew all year, numerator is at peak | Analyst incorrectly infers deteriorating payment behavior |
+| Business is shrinking or destocking | DPO **understated** | Analyst incorrectly infers improving payment discipline |
+
+### The Growth Distortion Deserves Special Emphasis
+
+Suppose a company's AP was $50M at the start of the year and $100M at year-end because the business doubled in size. COGS for the year is, say, $400M.
+
+- **Average AP method:** DPO = (($50M + $100M)/2) / ($400M/365) = **$75M / $1.096M ≈ 68 days** ✓ Reasonable
+- **Ending AP method:** DPO = $100M / $1.096M ≈ **91 days** ✗ Inflated—not because the company is paying slower, but because the ending balance reflects a much larger business than existed at the start of the year
+
+The ending-balance DPO incorrectly signals that the company has extended its payment terms when in fact it has simply grown.
+
+---
+
+## Important Caveats and Limitations
+
+1. **Simple averaging is still imperfect.** Two data points can miss intra-year seasonality. Analysts with access to quarterly data often use a four-point or five-point average (beginning + four quarter-ends, divided by 5), which is more precise.
+
+2. **The denominator choice matters too.** Some analysts use **purchases** (COGS + change in inventory) instead of COGS, which is theoretically more correct because AP arises from purchases, not from goods sold. However, purchases are rarely disclosed in aggregate, so COGS is the practical proxy.
+
+3. **Averaging doesn't eliminate all manipulation.** A company that window-dresses *both* December 31 and January 1 (the prior year-end) neutralizes the convention entirely.
+
+4. **Industry and context still require judgment.** Even a "correct" DPO must be benchmarked against peers, payment terms in the industry, and the company's own trend.
+
+---
+
+## Summary
+
+The averaging convention exists because **a flow variable (COGS) should be divided by a representative stock variable, not a point-in-time snapshot**. Without it, seasonal timing, business growth, and opportunistic balance-sheet management all corrupt the ratio—making a company look like a faster or slower payer than it actually was during the period under review. Using the average AP balance is the standard, practical way to put the numerator and denominator on the same temporal footing.
+
+### Grader verdict
+
+- **Score:** 2
+- **Confidence:** high
+- **Reasoning:** The response clearly articulates the stock/flow consistency principle (explicitly using those terms), identifies end-of-period anomalies including window-dressing and seasonal distortions, addresses comparability (across the CCC family of metrics and across companies), and presents the canonical formula with the average-AP convention. It also adds valuable depth on growth distortion and caveats about purchases vs. COGS.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_017 — invoice_processing · medium · **score 2/2** (model: `claude-opus-4-7`)
+
+_Expected failure mode: domain conventions (P2P control taxonomy)_
+
+### Question
+
+Explain the difference between a 'duplicate vendor record' and a 'duplicate payment.' Both are control concerns and both can result in improper cash outflows, but they are caught by different control regimes. What's the distinction, and why is it operationally important to keep the two regimes separate?
+
+### Rubric
+
+- **0**: Treats the two as the same concept, OR fails to distinguish master-data from transaction-stream controls, OR provides only one regime's controls without the other
+- **1**: Distinguishes the two phenomena but does not articulate the different control regimes, OR misses the bridge-case (duplicate payment across two duplicate vendor records), OR addresses only one of the operational-importance reasons
+- **2**: Cleanly distinguishes master-data hygiene from transaction-stream control, names specific controls in each regime, identifies the bridge case (cross-vendor-ID matching), and addresses at least two of: ownership separation, audit-evidence separation, remediation-path differences
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] **Duplicate vendor record** = the same legal entity appears twice (or more) in the supplier master under distinct vendor IDs. The records may have variant names, slightly different addresses, possibly different bank accounts. The legal entity is one; the master-data representation is multiple.
+
+**Duplicate payment** = the same invoice (same supplier, same invoice number, same amount, same period) gets paid more than once. Could happen against a single vendor record (e.g., supplier resubmits the invoice with a slight number variation and AP doesn't catch the match) or across two duplicate vendor records (the harder case to detect).
+
+The two are categorically distinct because they sit on different sides of the P2P process and are caught by different controls:
+
+**Duplicate vendor record** is a master-data hygiene issue. Caught by:
+- Periodic vendor-master cleansing routines
+- TIN-based dedupe analytics (anchor on TIN, surface variant names)
+- Maker-checker on new vendor adds
+- Employee-vendor match analytics (employee data crossed against vendor data)
+This regime operates BEFORE invoices are entered. It's a preventive control on the master data.
+
+**Duplicate payment** is a transaction-stream issue. Caught by:
+- (Vendor + invoice number) exact match at invoice entry
+- (Vendor + amount + date within window) fuzzy match
+- Cross-vendor amount + PO match (catches duplicates across two duplicate vendor records — the bridge case)
+- Reverse-amount matching (catches re-billing after a credit memo)
+This regime operates AT invoice entry and is a detective/preventive control on the transaction.
+
+**Why the distinction is operationally important:**
+
+1. **Different ownership.** Master-data hygiene typically sits with a procurement-ops or master-data steward team. Duplicate-payment monitoring sits with AP. Conflating the two leads to ownership confusion and gap.
+
+2. **Different audit evidence.** SOX P2P walkthroughs sample the two regimes separately. A vendor-master walkthrough samples vendor adds; a duplicate-payment walkthrough samples payment runs. Auditors expect distinct evidence trails.
+
+3. **Different remediation paths.** A duplicate vendor record gets fixed by consolidation (with the multi-step pre-merge control sweep — see q_001). A duplicate payment gets fixed by recovery (vendor refund, contra-payable, or write-off if uncollectible).
+
+4. **The bridge case is where both regimes matter.** When a duplicate payment occurs ACROSS two duplicate vendor records, it would have been prevented if the master-data regime had caught the duplicate vendor first. This is why duplicate-payment monitoring should include cross-vendor-ID amount matching as a backstop to master-data hygiene gaps.
+
+Keeping the two distinct in the controls framework, in the audit workpapers, and in role assignments ensures both gaps get coverage rather than each assuming the other will catch it.
+
+### Model response
+
+# Duplicate Vendor Records vs. Duplicate Payments
+
+These are related but fundamentally distinct control concerns in the procure-to-pay (P2P) cycle. Conflating them is one of the more common weaknesses I see in AP control design.
+
+## The Distinction
+
+**Duplicate Vendor Record** — A *master data* defect. The same supplier exists in the vendor master file under two or more vendor IDs. Causes include:
+- Name variations ("IBM Corp." vs. "International Business Machines")
+- Address or DBA differences (HQ vs. remit-to address)
+- Acquisitions/rebrands creating parallel records
+- Tax ID entered with/without dashes, or missing entirely
+- Intentional creation by a fraudster to bypass approval limits or insert a shell entity adjacent to a legitimate one
+
+The defect exists *before any invoice is processed*. It is a static, structural condition of the vendor master.
+
+**Duplicate Payment** — A *transactional* defect. The same economic obligation is paid more than once. Causes include:
+- Invoice keyed twice (same vendor, same invoice number, sometimes with a leading zero or trailing space difference)
+- Invoice paid against a PO and again against a non-PO workflow
+- Credit memo not applied, then a manual refund issued
+- Statement payment plus invoice payment for the same items
+- Payment via two channels (check and ACH) when the first is presumed lost
+
+The defect exists *at the moment of disbursement*, regardless of whether the vendor master is clean.
+
+## Why They Are Caught by Different Control Regimes
+
+**Vendor master controls** are *preventive* and *data-governance* controls:
+- Segregation of duties between vendor setup and invoice/payment processing
+- Fuzzy-match algorithms on name, address, tax ID, and bank account at the point of vendor creation
+- Periodic vendor master cleansing and dormancy reviews
+- Tax ID (W-9/W-8) validation and IRS TIN matching
+- Bank account verification (e.g., Positive Pay-style or third-party validation services like SAP Ariba, Dun & Bradstreet)
+- Approval workflow for new vendor creation, ideally with management above the requestor
+
+**Duplicate payment controls** are *detective and preventive transaction controls*:
+- ERP duplicate-invoice check at entry (vendor + invoice number + amount + date)
+- Three-way match (PO, receipt, invoice)
+- Pre-disbursement edit reports flagging same-amount/same-vendor pairs within a window
+- Post-payment recovery audits (often outsourced to firms like PRGX or APEX Analytix)
+- Statement reconciliations with vendors
+
+## Why Operational Separation Matters
+
+Keeping the two regimes distinct is important for several concrete reasons:
+
+1. **Different risk owners.** Vendor master integrity typically sits with a master data management (MDM) function or procurement; payment integrity sits with AP operations. Merging them obscures accountability and weakens segregation of duties — the very SOD that prevents fictitious-vendor fraud.
+
+2. **Different failure modes and remediation.** A duplicate vendor record can cause a duplicate payment, but it can also enable *fraud* (a planted shell vendor that is by design a "near-duplicate" of a real one). Cleaning a duplicate payment by issuing a recovery claim does nothing to fix the underlying master data; the next invoice will replicate the error. Conversely, deduplicating the vendor master does not recover money already double-paid.
+
+3. **Different detection logic.** Vendor master deduplication relies on entity-resolution techniques (fuzzy matching, tax ID, banking). Duplicate payment detection relies on transactional matching across invoice attributes. The algorithms, tooling, and tolerance thresholds are not interchangeable — for example, you *want* a tight match in payment dedup (false positives delay legitimate payments), but a *loose* fuzzy match in vendor dedup (false negatives let fraud through).
+
+4. **Different audit and SOX implications.** A duplicate vendor record is a control *deficiency* in master data governance even if no improper payment ever occurs — it represents latent risk and a potential control gap an external auditor or fraud examiner will flag. A duplicate payment is a realized control failure with a quantifiable financial statement impact. The two get reported, escalated, and remediated differently.
+
+5. **Fraud detection sensitivity.** The most damaging schemes — vendor impersonation, bank account takeover, "ghost vendor" insertion by an employee — manifest first in the *vendor master*, often months before any anomalous payment is detectable transactionally. If you rely solely on duplicate-payment controls, you're catching the symptom, not the disease, and only after cash has left the building.
+
+## Bottom Line
+
+Think of it as the difference between **who you can pay** (vendor master) and **what you actually paid** (transactions). Both regimes must exist independently, with different owners, different tools, and different review cadences. A mature AP control environment treats vendor master hygiene as a continuous data governance discipline and duplicate payment prevention as a transactional edit-and-audit discipline — and never lets one substitute for the other.
+
+### Grader verdict
+
+- **Score:** 2
+- **Confidence:** high
+- **Reasoning:** The response cleanly distinguishes master-data hygiene from transaction-stream controls, names specific controls in each regime (fuzzy matching, TIN validation, SOD for vendor master; three-way match, duplicate-invoice check, recovery audits for payments), and addresses multiple operational-importance reasons including ownership separation, remediation differences, and audit/SOX implications. The bridge case is implicitly addressed in point 2 ('A duplicate vendor record can cause a duplicate payment') and point 5, though it could be more explicit about cross-vendor-ID matching as a backstop. Still, the response substantially exceeds the bar for a 2.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_017 — invoice_processing · medium · **score 2/2** (model: `claude-sonnet-4-6`)
+
+_Expected failure mode: domain conventions (P2P control taxonomy)_
+
+### Question
+
+Explain the difference between a 'duplicate vendor record' and a 'duplicate payment.' Both are control concerns and both can result in improper cash outflows, but they are caught by different control regimes. What's the distinction, and why is it operationally important to keep the two regimes separate?
+
+### Rubric
+
+- **0**: Treats the two as the same concept, OR fails to distinguish master-data from transaction-stream controls, OR provides only one regime's controls without the other
+- **1**: Distinguishes the two phenomena but does not articulate the different control regimes, OR misses the bridge-case (duplicate payment across two duplicate vendor records), OR addresses only one of the operational-importance reasons
+- **2**: Cleanly distinguishes master-data hygiene from transaction-stream control, names specific controls in each regime, identifies the bridge case (cross-vendor-ID matching), and addresses at least two of: ownership separation, audit-evidence separation, remediation-path differences
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] **Duplicate vendor record** = the same legal entity appears twice (or more) in the supplier master under distinct vendor IDs. The records may have variant names, slightly different addresses, possibly different bank accounts. The legal entity is one; the master-data representation is multiple.
+
+**Duplicate payment** = the same invoice (same supplier, same invoice number, same amount, same period) gets paid more than once. Could happen against a single vendor record (e.g., supplier resubmits the invoice with a slight number variation and AP doesn't catch the match) or across two duplicate vendor records (the harder case to detect).
+
+The two are categorically distinct because they sit on different sides of the P2P process and are caught by different controls:
+
+**Duplicate vendor record** is a master-data hygiene issue. Caught by:
+- Periodic vendor-master cleansing routines
+- TIN-based dedupe analytics (anchor on TIN, surface variant names)
+- Maker-checker on new vendor adds
+- Employee-vendor match analytics (employee data crossed against vendor data)
+This regime operates BEFORE invoices are entered. It's a preventive control on the master data.
+
+**Duplicate payment** is a transaction-stream issue. Caught by:
+- (Vendor + invoice number) exact match at invoice entry
+- (Vendor + amount + date within window) fuzzy match
+- Cross-vendor amount + PO match (catches duplicates across two duplicate vendor records — the bridge case)
+- Reverse-amount matching (catches re-billing after a credit memo)
+This regime operates AT invoice entry and is a detective/preventive control on the transaction.
+
+**Why the distinction is operationally important:**
+
+1. **Different ownership.** Master-data hygiene typically sits with a procurement-ops or master-data steward team. Duplicate-payment monitoring sits with AP. Conflating the two leads to ownership confusion and gap.
+
+2. **Different audit evidence.** SOX P2P walkthroughs sample the two regimes separately. A vendor-master walkthrough samples vendor adds; a duplicate-payment walkthrough samples payment runs. Auditors expect distinct evidence trails.
+
+3. **Different remediation paths.** A duplicate vendor record gets fixed by consolidation (with the multi-step pre-merge control sweep — see q_001). A duplicate payment gets fixed by recovery (vendor refund, contra-payable, or write-off if uncollectible).
+
+4. **The bridge case is where both regimes matter.** When a duplicate payment occurs ACROSS two duplicate vendor records, it would have been prevented if the master-data regime had caught the duplicate vendor first. This is why duplicate-payment monitoring should include cross-vendor-ID amount matching as a backstop to master-data hygiene gaps.
+
+Keeping the two distinct in the controls framework, in the audit workpapers, and in role assignments ensures both gaps get coverage rather than each assuming the other will catch it.
+
+### Model response
+
+# Duplicate Vendor Records vs. Duplicate Payments: A Control Taxonomy
+
+## Core Definitions
+
+### Duplicate Vendor Record
+A duplicate vendor record exists when the **same real-world supplier is represented more than once in the vendor master file** — typically with different vendor IDs, slightly different names, different addresses, or minor variations in tax identification numbers (e.g., "Acme Corp," "ACME Corporation," "Acme Corp."). The duplicate exists **at the standing data level**, before any transaction is processed.
+
+### Duplicate Payment
+A duplicate payment occurs when **the same valid obligation is paid more than once** — typically by processing the same invoice twice, or paying two invoices that represent the same underlying obligation. The duplication exists **at the transaction level**, and may or may not involve a duplicate vendor record.
+
+---
+
+## The Structural Distinction
+
+| Dimension | Duplicate Vendor Record | Duplicate Payment |
+|---|---|---|
+| **Where it lives** | Standing/master data | Transaction processing |
+| **When risk materializes** | Exists before any payment | Occurs during payment run |
+| **Trigger** | Vendor onboarding/maintenance process failure | Invoice receipt and payment processing failure |
+| **Harm mechanism** | Enables future improper payments; obscures vendor relationship | Direct cash outflow for an obligation already discharged |
+| **Can occur without the other?** | Yes — record can sit dormant indefinitely | Yes — same vendor ID can be paid twice |
+| **Fraud vector** | Shell company insertion; fictitious vendor creation | Invoice re-submission; split invoices; system timing manipulation |
+
+---
+
+## Why They Are Caught by Different Control Regimes
+
+### Controls Over Duplicate Vendor Records — The Master Data Regime
+
+This regime is concerned with **who is authorized to exist in the system** as a payable entity. Controls include:
+
+- **Segregation of duties** between vendor setup and payment authorization (the person who adds a vendor cannot approve payments to that vendor)
+- **Duplicate detection algorithms** run at onboarding: fuzzy name matching, EIN/VAT number matching, bank account number matching, address matching
+- **Periodic vendor master file cleansing** — deactivating dormant vendors, merging duplicates, confirming legitimacy of active records
+- **New vendor approval workflows** — independent review before activation
+- **Beneficial ownership verification** — particularly important for fraud prevention
+
+The *failure mode* this regime guards against is: **a payable pathway existing to an illegitimate or redundant destination**. Even if every payment is properly approved and processed, money flows to the wrong place because the master data was corrupted.
+
+### Controls Over Duplicate Payments — The Transaction Processing Regime
+
+This regime is concerned with **whether each payment instruction corresponds to exactly one valid, unpaid obligation**. Controls include:
+
+- **Three-way matching** (purchase order → goods receipt → invoice) at the transaction level
+- **Unique invoice number + vendor ID combination** constraints in the accounts payable system (system-enforced blocking of re-entry)
+- **Check number sequencing** and payment reference controls
+- **Pre-payment duplicate detection** — system flags same vendor + same amount + close date as suspicious
+- **Statement reconciliation** — comparing vendor statements to payment records to identify credits owed
+- **Positive pay** — bank-level control confirming each presented check was legitimately issued
+
+The *failure mode* this regime guards against is: **the payment process executing the same valid obligation more than once**, regardless of whether the vendor master is clean.
+
+---
+
+## Why Operational Separation Matters
+
+### 1. A Clean Vendor Master Does Not Prevent Duplicate Payments
+An organization can have perfectly deduplicated, verified vendor records and still pay the same invoice twice — because the payment duplication arises from process failures in invoice handling (e.g., paper invoice entered manually and also received via EDI, processed in two different AP systems, or submitted by the vendor in two billing cycles). The master data was never the problem.
+
+### 2. A Clean Transaction Process Does Not Prevent Vendor Record Risk
+Conversely, if every invoice goes through rigorous three-way matching and duplicate invoice controls, a dormant shell vendor sitting in the master file represents a latent risk — any payment eventually processed to that vendor flows to an illegitimate destination. The transaction controls passed perfectly, but the standing data was compromised.
+
+### 3. Fraud Patterns Are Regime-Specific
+- **Accounts payable fraud** exploiting duplicate vendor records typically involves **insider creation** of fictitious or near-duplicate vendors with bank accounts controlled by the fraudster — detected only by master data scrutiny and segregation of duties.
+- **Duplicate payment fraud/error** typically involves **invoice manipulation** — submitting the same invoice via multiple channels — detected by transaction-level controls and reconciliation.
+
+Conflating the two leads organizations to rely on whichever control is most visible while leaving the other regime under-resourced.
+
+### 4. Audit and Remediation Processes Differ
+- Remediating a duplicate vendor record requires **master data governance**: merge records, re-point historical transactions, notify banking, update procurement systems, and assess whether prior payments were proper.
+- Remediating a duplicate payment requires **cash recovery**: demand credit notes or refunds from suppliers, adjust open payables, and investigate the process gap that allowed the second payment.
+
+These involve different teams (IT/master data governance vs. treasury/AP operations), different timelines, and different controls testing during audit.
+
+### 5. Systemic vs. Transactional Risk Profile
+Duplicate vendor records represent **systemic risk** — a single corrupted master record can generate many improper payments over time before detection. Duplicate payments are often **episodic** — a specific process failure on a specific invoice, often catchable quickly through statement reconciliation.
+
+This risk profile difference should drive different **monitoring frequencies** (continuous master data monitoring vs. pre-payment run duplicate checks) and different **materiality thresholds** in internal audit planning.
+
+---
+
+## A Practical Illustration
+
+> Vendor "Smith Supplies Inc." exists twice in the vendor master: ID 10045 (legitimate, correct bank account) and ID 10892 (fraudulent, controlled by an insider, slightly different name "Smith Supply Inc."). 
+>
+> Invoice #7741 for $50,000 is entered under ID 10045 and paid correctly — **no duplicate payment**. But separately, a fraudulent invoice under ID 10892 is approved and paid — **a duplicate vendor record problem masquerading as a legitimate payment**. The transaction-level controls saw nothing wrong.
+>
+> Later, Invoice #7741 is inadvertently re-entered by a clerk and paid again under ID 10045 — **a duplicate payment**. The vendor master was clean; the process was not.
+
+Both result in improper cash outflows. The first is invisible to transaction controls; the second is invisible to master data controls. Neither regime substitutes for the other.
+
+---
+
+## Summary
+
+The essential operational principle is:
+
+> **Master data controls govern who can be paid; transaction controls govern how many times a valid obligation is paid.** Both must function independently and completely, because the failure modes are orthogonal — each can occur in the total absence of the other. Organizations that collapse them into a single "duplicate review" process will reliably have blind spots in one dimension or the other.
+
+### Grader verdict
+
+- **Score:** 2
+- **Confidence:** high
+- **Reasoning:** The response cleanly distinguishes master-data hygiene from transaction-stream control regimes, names specific controls in each (fuzzy matching/EIN matching/SoD for vendor master; three-way matching/unique invoice+vendor constraints/duplicate detection for payments). It addresses multiple operational-importance reasons including ownership separation (IT/master data governance vs. treasury/AP), remediation-path differences (merge records vs. cash recovery), audit differences, and fraud pattern differences. The illustration with Smith Supplies covers the bridge case where a duplicate vendor record enables an improper payment that transaction controls miss, though it doesn't explicitly emphasize cross-vendor-ID amount matching as a backstop control. Still, the bridge case is clearly identified conceptually, and the response exceeds the bar on the operational-importance dimensions.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
+## q_018 — close_and_controls · hard · **score 2/2** (model: `claude-haiku-4-5`)
+
+_Expected failure mode: control framework reasoning under SOX (multi-tier diagnosis)_
+
+### Question
+
+An improper payment was made. The same observable outcome ($X to wrong supplier or wrong amount) could be the result of a tactical 3-way-match exception that AP missed, OR a SOX P2P control design failure. The IT and audit treatment of these two diagnoses is very different. Explain the canonical hierarchy of control failures (transaction-level → policy-level → design-level), what evidence distinguishes each, and why it matters which diagnosis applies.
+
+### Rubric
+
+- **0**: Conflates the three tiers, OR fails to identify that the same observable can have different diagnoses, OR misses the audit / disclosure / remediation differences entirely
+- **1**: Distinguishes the three tiers but does not address the bottom-up investigation order, OR misses the audit/disclosure thresholds (control deficiency / significant deficiency / material weakness), OR gives only one of the four 'why it matters' reasons
+- **2**: Distinguishes all three tiers with concrete examples, addresses the audit / disclosure / remediation hierarchy (control deficiency → significant deficiency → material weakness), explains the bottom-up investigation order, gives a worked example showing the same observable resolving differently across tiers, and references the relevant audit framework (AS 2201 / COSO)
+
+### Ideal answer
+
+[AI DRAFT — practitioner review required] The canonical control-failure hierarchy goes from narrowest to broadest:
+
+**Tier 1 — Transaction-level failure (a single control instance failed to operate).**
+The control existed and was designed correctly, but in this specific transaction it didn't catch the issue. Example: 3-way match was supposed to flag the price variance but the AP clerk overrode it without proper documentation. The clerk's override is the failure point.
+
+Evidence: the audit trail shows the control SHOULD have triggered (the variance was within the configured threshold), AND it shows manual override or bypass. The control configuration itself is correct.
+
+Remediation: re-train the operator, tighten override authority, add maker-checker on overrides. Narrow remediation, narrow disclosure.
+
+**Tier 2 — Policy-level failure (the control is designed correctly but the policy that governs it has a gap).**
+The control as designed wouldn't have caught this fact pattern because the policy didn't anticipate the scenario. Example: 3-way match was configured for goods POs but services POs were exempted by policy without compensating control; an improper payment on a services PO slips through.
+
+Evidence: the audit trail shows the control did not trigger BECAUSE the transaction was out of the policy scope. No bypass occurred — the policy itself is the gap.
+
+Remediation: rewrite the policy to close the carve-out, add the compensating control, document the change. Broader remediation: every transaction in the policy gap window may need lookback review.
+
+**Tier 3 — Design-level failure (the control framework itself is structurally inadequate).**
+The control as conceived cannot prevent the class of issue that occurred. Example: a single AP clerk has vendor-master add + invoice approval + payment initiation entitlements. The 3-way match working perfectly does not stop this person from creating a ghost vendor and routing payments to themselves — that's not what 3-way match controls. The SoD design is the failure.
+
+Evidence: the audit trail may show no individual control fired or failed; the loss occurred *between* controls or *outside* their scope. The framework, not the operation, is the gap.
+
+Remediation: redesign the control framework — entitlement architecture, SoD matrix, ITGC review cadence. Broadest remediation. Material weakness assessment. SOX 404 disclosure consideration. Possible restatement.
+
+**Why the diagnosis matters:**
+
+1. **Audit treatment.** Tier-1 is a 'control deficiency.' Tier-2 is typically a 'significant deficiency.' Tier-3 is most likely a 'material weakness.' Each has different SOX disclosure thresholds and different external-auditor responses.
+
+2. **Disclosure.** Material weakness requires Form 10-K Item 9A disclosure and adverse ICFR opinion; significant deficiency may not require external disclosure but requires audit committee communication. Control deficiency may stay in internal-audit workpapers.
+
+3. **Scope of remediation effort.** Tier-1 affects one role/process. Tier-2 affects every transaction in the policy gap window — lookback scope is significant. Tier-3 affects every transaction the design failure could have enabled — lookback scope is comprehensive (per the q_010 fact pattern, this is what drives the 24-36-month all-vendor lookback).
+
+4. **Investigation methodology.** Tier-1 is a process review (interview the clerk, review the override). Tier-2 is a policy review (compare written policy to the risk universe). Tier-3 is an architecture review (entitlement model, SoD matrix, ITGC) and typically pulls in IT audit, IS security, and possibly external counsel.
+
+5. **Where the same observable can be diagnosed differently.** A duplicate-payment fact pattern could be Tier-1 if the AP clerk missed an obvious match the system flagged; Tier-2 if the duplicate-detection rules don't cover cross-vendor-ID matching (a policy gap); Tier-3 if the same person who added the duplicate vendor is also approving payments (an SoD design gap that enabled the duplicate vendor in the first place). The diagnosis drives whether you fix the operator, the policy, or the architecture — and getting the diagnosis wrong leads to either over- or under-remediation.
+
+The canonical investigation order is bottom-up: confirm Tier-1 first (was this an operator failure?), only escalate to Tier-2 if the operator-failure hypothesis doesn't fit (the system should have caught it but the configuration didn't), and only escalate to Tier-3 if the policy-failure hypothesis doesn't fit (the configuration was right but the framework was inadequate).
+
+References: PCAOB AS 2201 (definitions of control deficiency, significant deficiency, material weakness); COSO 2013 framework Component 4 'Control Activities' and Component 5 'Monitoring Activities'; SEC Regulation S-K Item 308.
+
+### Model response
+
+# Hierarchical Control Failure Diagnosis in P2P
+
+This is a critical analytical framework because the *same observed defect* has radically different remediation, audit, and SOX implications depending on where in the control stack the failure occurred.
+
+## The Three-Level Hierarchy
+
+```
+DESIGN FAILURE (Systemic/Control Environment)
+    ↓ enables
+POLICY FAILURE (Control Operating Model)
+    ↓ enables
+TRANSACTION FAILURE (Tactical/Execution)
+```
+
+### Level 3: Transaction-Level Failure (Weakest Diagnosis)
+**Definition**: The control *exists, is designed correctly, and is documented*, but failed on this specific instance due to execution error.
+
+**Evidence of transaction-level failure:**
+- Control tested successfully in prior periods
+- Similar transactions processed correctly in same period
+- AP analyst had proper tools, data visibility, and authorization
+- Investigation reveals: distraction, system lookup error, one-time data transcription mistake
+- Preventive controls present (validation rules) didn't trigger (suggesting exception override authority was used)
+- Corrective action sufficient: retraining, performance counseling, or process adjustment
+
+**Example**: Analyst misread a PO digit in a known-supplier exception, or approved variance within authority but clicked wrong supplier dropdown.
+
+---
+
+### Level 2: Policy/Procedure Failure (Intermediate Diagnosis)
+**Definition**: Design is sound, but the operating procedures, execution protocols, or compensating controls lack sufficient specificity, approval limits, or checkpoints.
+
+**Evidence of policy failure:**
+- Multiple similar exceptions approved in same period
+- Exception criteria too broad or documented ambiguously
+- Approval thresholds misaligned with actual risk (e.g., $100k variances approved by AP coordinator)
+- Missing compensating control for high-risk transaction type
+- Inadequate segregation of duties documented in procedure
+- Change management absent when supplier data updates
+- Recurrence across multiple AP staff
+
+**Example**: No requirement to validate supplier *bank account change* before 3-way match; procedure allows AP to override quantity variance >10% without finance review; no monthly reconciliation of exceptions taken.
+
+---
+
+### Level 1: Design Failure (Root Cause - Highest Risk)
+**Definition**: The control architecture itself is inadequate—missing entirely, fundamentally flawed, or disconnected from actual transaction flow.
+
+**Evidence of design failure:**
+- **No compensating control** exists for a known P2P risk (e.g., no duplicate-invoice detection in ERP)
+- **Control environment evidence**: similar errors recur across multiple periods, multiple suppliers, multiple staff despite coaching
+- **System configuration missing**: 3-way match exception workflow not configured in ERP; exception routing bypasses required approver
+- **Scope gap**: certain transaction types (consignment, intercompany, expense reimbursement) explicitly excluded from 3-way match requirement
+- **Access/authority design flaw**: wrong role assigned exception approval authority
+- **Data quality design gap**: supplier master validation rules missing on key fields (site, bank details)
+- **Testing reveals**: control doesn't operate as documented in control narrative
+- **Policy doesn't address** the transaction characteristic that created risk
+
+**Example**: ERP 3-way match disabled for suppliers meeting certain criteria; no design control for contract-based purchases; accrual-to-payment reconciliation not performed at cost center level where $X payment originated.
+
+---
+
+## Critical Evidentiary Distinctions
+
+| Dimension | Transaction | Policy | Design |
+|-----------|-------------|--------|--------|
+| **Frequency** | Isolated incident | Cluster in same period | Pattern across multiple periods |
+| **Affected population** | Single transaction, one processor | Multiple transactions, multiple processors | All transactions of type X |
+| **Process re-examination** | Works as documented | Procedure ambiguous or incomplete | Control missing from procedure entirely |
+| **System configuration** | Control exists in system | Workflow misconfigured | Control not configured in ERP at all |
+| **Prior audit finding** | No; newly discovered | Likely; noted as observation | Likely; noted as deficiency |
+| **Root cause trail** | Stops at individual action | Stops at policy/procedure gap | Stops at control architecture |
+
+---
+
+## Why Diagnosis Matters: Audit & SOX Implications
+
+### Transaction-Level Finding
+**Audit classification**: Control deficiency (not significant)
+- Conclude: "Control operated effectively; isolated execution error"
+- **Remediation**: Performance management, refresher training, system alert
+- **SOX evaluation**: No design weakness. Single error ≠ ineffective control design
+- **Testing implication**: No need to expand sample; documented exception handling sufficient
+- **Re-audit**: Return to normal sampling next period; monitor individual's subsequent transactions
+
+---
+
+### Policy-Level Finding
+**Audit classification**: Significant deficiency (material weakness candidate)
+- Conclude: "Control design adequate, but operating procedures inadequate"
+- **Remediation**: Revise exception approval matrix, tighten variance thresholds, add compensating control (e.g., mandatory secondary review), enhance training
+- **SOX evaluation**: Potential material weakness if across multiple transaction types or high-dollar exposure
+- **Testing implication**: Expand sample to all similar exceptions in period; test compensating controls if control relied upon doesn't operate as intended
+- **Documentation requirement**: Formalize exception criteria in control procedure; document approver qualifications
+- **Timeline**: Control remediation expected within current fiscal year
+
+---
+
+### Design-Level Finding
+**Audit classification**: Material weakness (reportable deficiency)
+- Conclude: "Control environment fails to address known P2P risks"
+- **Remediation**: Reconfigure ERP workflow, redesign approval authority matrix, build new system validation rule, restructure cost allocation or payment method
+- **SOX evaluation**: Presumptive material weakness; must evaluate whether reasonable possibility of material misstatement exists
+- **Testing implication**: Control cannot be relied upon; alternative audit procedures required; likely requires broader scope across multiple cycles
+- **Documentation requirement**: Control narrative must be rewritten to reflect true control activity
+- **Timeline**: Material weaknesses require remediation and testing by year-end; material control deficiency; likely requires management assessment update and auditor re-evaluation of control design
+
+---
+
+## Diagnostic Checklist: Which Level Is This?
+
+**Ask in order:**
+
+1. **Does the control exist in the ERP configuration or documented procedure?**
+   - No → **Design failure**
+   - Yes → Continue
+
+2. **Has this exact transaction type failed before (in prior periods or other processors)?**
+   - Yes, repeatedly, across multiple people/periods → **Design failure**
+   - Yes, occasionally, inconsistent → **Policy failure**
+   - No, first occurrence → Continue
+
+3. **When you trace the exception, is it following the documented approval workflow and policy thresholds?**
+   - No; control was overridden, ignored, or misconfigured → **Policy failure**
+   - Yes; control was followed, but analyst made a judgment error within their authority → **Transaction failure**
+
+4. **Does the procedure clearly define the criteria for this exception, approval limits, and required documentation?**
+   - No; procedure is silent or ambiguous on this scenario → **Policy failure**
+   - Yes; procedure is clear → **Transaction failure**
+
+---
+
+## Why This Matters in Practice
+
+**A misdiagnosed transaction-level error as design failure → Unnecessary system redesign, opportunity cost, false remediation**
+
+**A misdiagnosed design failure as transaction-level → Repeat exceptions, increased audit risk, control reliance unjustified, SOX deficiency missed**
+
+The hierarchy enforces rigor: assume the control works as designed until evidence proves otherwise. Burden of proof rises with each level.
+
+### Grader verdict
+
+- **Score:** 2
+- **Confidence:** medium
+- **Reasoning:** The response distinguishes all three tiers with concrete examples (transaction-level execution error, policy gap with ambiguous exception criteria, design failure like missing 3-way match for certain supplier types). It addresses the audit/disclosure hierarchy explicitly mapping to control deficiency → significant deficiency → material weakness. It provides a bottom-up diagnostic checklist (the 'Ask in order' section) which captures the canonical investigation order. It gives worked examples showing the same observable (improper payment) resolving differently across tiers. The remediation scope differences are addressed. Minor gap: it does not explicitly cite AS 2201 or COSO by name, though it uses SOX framework terminology throughout. The rubric mentions 'AS 2201 / COSO' as part of tier 2, but the response covers all other elements thoroughly with concrete examples and the bottom-up order. Overall meets the tier-2 bar substantively.
 
 ### Decision (fill in)
 

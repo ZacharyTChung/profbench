@@ -2,7 +2,11 @@
 
 This document describes what is built in this repository, the workflow used
 to produce it, and how that workflow maps onto AfterQuery's expert-in-the-loop
-data generation pipeline.
+data generation pipeline. The methodology is closely modeled on the FinanceQA
+paper (Mateega, Georgescu, Tang — AfterQuery, 2025) — same question taxonomy
+(tactical / conceptual, with tactical sub-divided into basic / assumption-based),
+same exact-match scoring convention as the headline metric, same emphasis on
+real-world on-the-job tasks over context-first benchmark designs.
 
 ## What this repo is
 
@@ -129,6 +133,46 @@ does is the failure mode that destroys the benchmark's value.
 - **Sample size:** 10 questions is a pilot. A defensible Market-Bench-style submission targets 50-200 questions across more diverse failure modes.
 - **Single domain expert:** all questions, ideal answers, and rubrics come from one practitioner. AQ's published methodology emphasizes peer review by multiple domain experts to catch idiosyncratic biases.
 
+## Question taxonomy (FinanceQA-aligned)
+
+Following the FinanceQA paper's three-way split:
+
+- **Tactical-basic** — answerable from the provided context. Tests precision recalculation, application of accounting/procurement conventions, real-world calculation standards. The dominant category in the v0.1 pilot (11 of 18 questions).
+- **Tactical-assumption** — requires inferring something not stated in the context. The killer category in FinanceQA's results: frontier models scored <5% on assumption questions even when they scored 40-60% on tactical-basic. Currently 4 of 18 questions in ProfBench (q_006 W-8/source-of-income split, q_007 EU VAT establishment, q_009 sanctions/UBO chain, q_015 HTS classification).
+- **Conceptual** — no context, tests principles, conventions, the structure of relationships between metrics or controls. 3 of 18 questions (q_016 DPO stock/flow, q_017 duplicate-vendor vs duplicate-payment, q_018 control-failure tier hierarchy).
+
+The mix is deliberately weighted toward tactical because tactical-basic and tactical-assumption together are what FinanceQA shows is uniquely missing from existing benchmarks.
+
+## Scoring conventions
+
+ProfBench reports two scores per response:
+
+1. **Rubric score (0/1/2)** — the practitioner-authored 3-tier grading. More granular than the FinanceQA convention; useful for *calibration* (where a "1" tells you something specific is missing rather than just "wrong").
+2. **Binary exact-match (% scoring 2/2)** — the FinanceQA-paper-aligned headline metric. "No partial credit" reflects the operational reality that an 80% answer in finance / procurement still requires line-by-line verification by a human and therefore provides minimal practical value. This is the number to compare against the FinanceQA results table for cross-domain context.
+
+Both metrics are reported in `analysis/loss_report.md` and `leaderboard/leaderboard.md`.
+
+## Reference texts (for question authoring)
+
+When practitioner-authoring or validating questions, the following sources are the canonical references for procurement / source-to-pay reasoning:
+
+- **PCAOB AS 2201**, *An Audit of Internal Control over Financial Reporting* — for SOX P2P control framing
+- **AS 1301**, *Communications with Audit Committees*
+- **COSO 2013** Internal Control – Integrated Framework
+- **Incoterms 2020**, ICC Publication 723E
+- **IRS Publication 1281**, *Backup Withholding for Missing and Incorrect Name/TINs*
+- **IRS Publication 515**, *Withholding of Tax on Nonresident Aliens and Foreign Entities*
+- **EU Council Directive 2006/112/EC** (VAT Directive) and Council Implementing Regulation 282/2011
+- **UK VAT Act 1994** Schedule 4A; HMRC VAT Notice 741A
+- **Excise Tax Act (Canada)** Schedule VI Part V (zero-rated exports of services)
+- **OFAC** Specially Designated Nationals (SDN) list and FAQ on the 50% rule
+- **BIS** Export Administration Regulations (EAR) Part 744 and Entity List
+- **FinCEN** Beneficial Ownership Information rule (31 CFR §1010.380)
+- **CIPS** Procurement and Supply Management body of knowledge
+- **AICPA Audit Guide** sections on P2P controls
+
+Citing primary sources rather than secondary summaries is what keeps the rubric defensible during peer review.
+
 ## Pending work (in priority order)
 
 1. Walk `analysis/comparison_<run>.md` for every non-2 score; classify (a)/(b)/(c); make narrow rubric edits where warranted.
@@ -137,3 +181,16 @@ does is the failure mode that destroys the benchmark's value.
 4. Cross-grader run (different model family as judge) to retire self-grading bias.
 5. Manual scoring on a subset → inter-rater agreement statistics.
 6. Multi-turn / agentic version of select questions (give the model real tools to call; score on tool-use trajectory). Scope = significant.
+
+## References (paper-style citation list)
+
+- Mateega, S., Georgescu, C., & Tang, D. (2025). *FinanceQA: A Benchmark for Evaluating Financial Analysis Capabilities of Large Language Models*. AfterQuery. Hugging Face dataset: `AfterQuery/FinanceQA`.
+- Holthausen, R. W., & Zmijewski, M. E. (2014). *Corporate valuation: theory, evidence & practice* (2nd ed.). Cambridge Business Publishers.
+- Koller, T., Goedhart, M., & Wessels, D. (2020). *Valuation: Measuring and Managing the Value of Companies* (7th ed.). John Wiley & Sons.
+- SEC Staff Accounting Bulletin No. 99 (1999), *Materiality*.
+- PCAOB AS 2201, *An Audit of Internal Control over Financial Reporting*.
+- COSO 2013, *Internal Control – Integrated Framework*.
+- ICC Publication 723E, *Incoterms 2020*.
+- IRS Publication 1281; IRS Publication 515.
+- EU Council Directive 2006/112/EC; Council Implementing Regulation 282/2011.
+

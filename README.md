@@ -1,16 +1,22 @@
 # ProfBench
 
-A domain-specific LLM evaluation harness in the style of FinanceQA, Market-Bench,
-and IDE-Bench. This instance targets **procurement / source-to-pay** reasoning:
-supplier master data, purchase orders and non-PO spend, invoice processing,
-trade compliance (Incoterms, W-8/1042-S, EU VAT), period-close accruals, and
-SOX P2P controls.
+A domain-specific LLM evaluation harness modeled directly on the
+[FinanceQA](https://huggingface.co/datasets/AfterQuery/FinanceQA) paper
+(Mateega, Georgescu, Tang — AfterQuery, 2025). Same question taxonomy
+(tactical / conceptual; tactical sub-divided into basic / assumption-based),
+same exact-match scoring as the headline metric, same emphasis on real-world
+on-the-job tasks rather than context-first benchmark designs.
+
+This instance targets **procurement / source-to-pay** reasoning instead of
+finance: supplier master data, purchase orders and non-PO spend, invoice
+processing, trade compliance (Incoterms, W-8/1042-S, EU VAT, Section 301
+tariffs), period-close accruals, and SOX P2P controls.
 
 ProfBench is built around the [AfterQuery](https://afterquery.com/) workflow —
 expert-in-the-loop authoring of questions, ideal answers, and rubrics, scored
 either manually in a Streamlit UI or by Claude as autograder. See
-[METHODOLOGY.md](METHODOLOGY.md) for how this maps to the AfterQuery data
-generation pipeline.
+[METHODOLOGY.md](METHODOLOGY.md) for the full FinanceQA-aligned methodology
+and the AfterQuery pipeline mapping.
 
 ## What is ProfBench
 
@@ -31,15 +37,24 @@ future training data.
 
 ## Benchmark design
 
-- **Task categories.** `supplier_data`, `invoice_processing`, `trade_and_tax`,
-  `close_and_controls` — covering supplier master/dedupe/risk, PO and non-PO
-  processing including 3-way match and duplicate detection, Incoterms and
-  cross-border tax, and period-close/SOX P2P controls.
+- **Question taxonomy** (FinanceQA-aligned):
+  - `question_type` — `tactical` (context-bound, applied) or `conceptual` (no context, principles)
+  - `requires_assumption` — bool; tactical questions where the responder must infer something not stated. **The killer category** — FinanceQA shows frontier models score <5% here.
+  - `source_grounded` — bool; context drawn from a real public document (e.g. SEC filing, OFAC SDN, USAspending record)
+- **Domain categories.** `supplier_data`, `invoice_processing`, `trade_and_tax`,
+  `close_and_controls` — orthogonal to question type; describes the procurement
+  subdomain.
 - **Difficulty levels.** `easy` / `medium` / `hard`. Trivia excluded.
 - **Rubric.** Three-level per question:
   - `0` — incorrect or missing key reasoning
   - `1` — correct approach but incomplete or with minor errors
   - `2` — correct, complete, and professional-grade
+- **Scoring (two metrics).**
+  - **Average rubric score (0-2)** — granular, useful for calibration.
+  - **Binary exact-match (% scoring 2/2)** — the FinanceQA-paper-aligned
+    headline metric. "No partial credit" matches the operational reality that
+    an 80% answer in finance / procurement still requires line-by-line
+    verification by a human.
 - **Failure modes.** Every question is tagged with an `expected_failure_mode`
   so loss analysis can group questions by the kind of reasoning they stress.
 - **Anchor data.** Real public records (USAspending, Chicago Payments, OFAC

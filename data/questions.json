@@ -12,7 +12,11 @@
       "1": "Identifies them as duplicates via TIN normalization but treats name/address/contact variance as purely cosmetic, does not consider DBA or acquisition exceptions, OR misses the duplicate-payment lookback / open-document migration / bank-history checks before deactivation",
       "2": "Two-step framing (identity vs operational merge); identifies TIN as primary identity key; explicitly rules out DBA structure, acquisition/restructuring, and operating-unit separation as exception classes before merging; treats address/name/contact divergences as investigation triggers not cosmetic; prescribes the full pre-deactivation control sweep (open-doc migration, duplicate-payment lookback ≥24mo, bank-history check); addresses survivor selection with reasoning and documentation for SOX evidence"
     },
-    "expected_failure_mode": "domain vocabulary and normalization"
+    "expected_failure_mode": "domain vocabulary and normalization",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": true,
+    "source_doc": "USAspending.gov recipient name variants (real federal-contractor TIN/name patterns)"
   },
   {
     "id": "q_002",
@@ -27,7 +31,11 @@
       "1": "Classifies all five correctly but misses the nuance on the SaaS auto-renewal, the legal carve-out conditions, or the after-the-fact PO control issue",
       "2": "Classifies all five correctly and surfaces at least two control nuances (auto-renewal-without-PO as rogue spend, after-the-fact PO concern, legal-engagement-letter as PO equivalent)"
     },
-    "expected_failure_mode": "applying domain conventions"
+    "expected_failure_mode": "applying domain conventions",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_003",
@@ -42,7 +50,11 @@
       "1": "Identifies all three exceptions and the basic resolution but misses role segregation, treats freight as automatically payable, or fails to flag the boundary case at all (5.00% qty / 2.00% price exactly at tolerance)",
       "2": "Identifies all three exceptions with correct math, explicitly states which tolerance convention is being applied (strictly-less-than vs less-than-or-equal — both are defensible) and reasons consistently from that, addresses each through the proper role (AP / buyer / receiver), and references SOX three-way-match control and segregation of duties"
     },
-    "expected_failure_mode": "multi-step arithmetic and control reasoning"
+    "expected_failure_mode": "multi-step arithmetic and control reasoning",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_004",
@@ -57,7 +69,11 @@
       "1": "Identifies the duplicate but only cites one or two signals, or omits the resolution workflow, or omits automated detection rules",
       "2": "Identifies it as a duplicate citing multiple signals (amount + vendor + PO + invoice-number family + timing), gives a control-aware resolution path, and lists at least three automated detection rules including the one that catches this exact case"
     },
-    "expected_failure_mode": "pattern matching and control logic"
+    "expected_failure_mode": "pattern matching and control logic",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": true,
+    "source_doc": "data.cityofchicago.org Payments dataset (real near-duplicate clusters)"
   },
   {
     "id": "q_005",
@@ -72,7 +88,11 @@
       "1": "Correctly rejects the inland freight and export clearance lines but mishandles insurance, terminal handling, or fails to cite Incoterms 2020 FCA",
       "2": "Correctly addresses every line with reference to FCA seller/buyer obligations, flags the terminal-handling ambiguity rather than guessing, and references Incoterms 2020 FCA explicitly"
     },
-    "expected_failure_mode": "applying domain conventions"
+    "expected_failure_mode": "applying domain conventions",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_006",
@@ -87,7 +107,11 @@
       "1": "Recognizes that W-8BEN is required and that 1042-S applies, but mishandles source-of-income (treats all $50k as US-source or all as foreign), or omits the treaty/PE analysis, or misses the disregarded-entity reasoning",
       "2": "Correctly identifies the disregarded-entity rule, requests W-8BEN from the owner, splits US-source vs. foreign-source by where services are performed, addresses 30% default and treaty/PE considerations, and identifies 1042/1042-S (not 1099) as year-end reporting"
     },
-    "expected_failure_mode": "applying domain conventions (cross-border tax)"
+    "expected_failure_mode": "applying domain conventions (cross-border tax)",
+    "question_type": "tactical",
+    "requires_assumption": true,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_007",
@@ -102,7 +126,11 @@
       "1": "Correctly identifies that VAT should not have been charged but reasons via reverse charge instead of out-of-scope, or omits the Article 22 establishment-confirmation step, or does not address reclaim mechanics",
       "2": "Correctly identifies the place of supply as the US under Article 44 based on which establishment consumes the service, distinguishes out-of-scope from reverse charge, recommends invoice rejection plus Article 22 establishment confirmation, and addresses why reclaim is not the right path"
     },
-    "expected_failure_mode": "assumption generation across jurisdictions"
+    "expected_failure_mode": "assumption generation across jurisdictions",
+    "question_type": "tactical",
+    "requires_assumption": true,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_008",
@@ -117,7 +145,11 @@
       "1": "Recognizes $150k in March correctly but mixes up the manual-vs-SES paths, omits the GR/IR clearing mechanic, or does not flag that the remaining $50k is non-accruable",
       "2": "Correctly accrues $150k in March only, presents both manual-with-reversal and SES-with-GR/IR paths with clean journal entries, addresses GR/IR aging review and SOX segregation, and explicitly excludes the $50k as non-accruable"
     },
-    "expected_failure_mode": "multi-step accounting (matching principle and clearing accounts)"
+    "expected_failure_mode": "multi-step accounting (matching principle and clearing accounts)",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_009",
@@ -132,7 +164,11 @@
       "1": "Identifies sanctions and export-control concerns but misses the OFAC 50% rule, the FinCEN BOI requirement, the bank-callback control, or the graduated-onboarding recommendation",
       "2": "Identifies all major red flags, names the relevant regimes (OFAC including 50% rule, EU/UK/UN sanctions, BIS EAR including Entity List, FinCEN BOI, FCPA), recommends specific verification steps including independent bank-account verification and prepayment rejection, and proposes graduated onboarding with ongoing screening"
     },
-    "expected_failure_mode": "assumption generation across multiple regulatory regimes"
+    "expected_failure_mode": "assumption generation across multiple regulatory regimes",
+    "question_type": "tactical",
+    "requires_assumption": true,
+    "source_grounded": true,
+    "source_doc": "OFAC SDN list (real sanctioned entity patterns)"
   },
   {
     "id": "q_010",
@@ -147,7 +183,11 @@
       "1": "Identifies SoD and one or two other gaps, but misses the threshold-clustering analytic, the employee-vendor match control, the cumulative-spend trigger, or the material-weakness reasoning",
       "2": "Identifies SoD plus at least four additional control gaps (vendor-master maker-checker, employee-vendor match, cluster-below-threshold analytic, rolling-cumulative-spend escalation, ITGC access review), proposes specific remediations for each, and reaches a defensible material-weakness conclusion under AS 2201 with the right reasoning (severity by potential not actual loss)"
     },
-    "expected_failure_mode": "multi-step controls reasoning under SOX"
+    "expected_failure_mode": "multi-step controls reasoning under SOX",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_011",
@@ -162,7 +202,11 @@
       "1": "Holds the PO and requests vendor follow-up, but misses the 24% backup withholding rate, the IRS form references (Form 8822-B / CP-575), or the §6721/§6722 penalty exposure",
       "2": "Holds the PO, prescribes the specific resolution path (re-confirm legal name from CP-575, retry TIN matching, escalate to IRS if still failing), names the 24% backup withholding rate and §6721/§6722 penalty exposure, and pushes back on the schedule pressure with the cost-comparison reasoning"
     },
-    "expected_failure_mode": "applying domain conventions (IRS TIN matching workflow)"
+    "expected_failure_mode": "applying domain conventions (IRS TIN matching workflow)",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_012",
@@ -177,7 +221,11 @@
       "1": "Recognizes the BEC risk and requires verification, but uses contact info from the request itself (e.g. calls the phone number on the letterhead), or omits the in-flight-payment hold, or omits maker-checker on the change application",
       "2": "Rejects the email as the basis for the change, prescribes callback verification using independent contact info (NOT from the request), holds the in-flight payment until verification completes, includes maker-checker and bank-letter verification of new account, and addresses the BEC pattern explicitly"
     },
-    "expected_failure_mode": "BEC defense / control rigor under social-engineering pressure"
+    "expected_failure_mode": "BEC defense / control rigor under social-engineering pressure",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_013",
@@ -192,7 +240,11 @@
       "1": "Recognizes that VAT should not have been charged but reasons via reverse charge instead of out-of-scope, OR fails to cite the place-of-supply rule (Sch 4A para 16 / VAT Notice 741A), OR mishandles the reclaim discussion",
       "2": "Correctly identifies the place of supply as the US under UK B2B rules, distinguishes out-of-scope from reverse charge, recommends rejection and corrected invoice, addresses why reclaim is not the right path, and references the relevant UK VAT Act provision and HMRC guidance"
     },
-    "expected_failure_mode": "applying domain conventions (post-Brexit UK B2B place-of-supply)"
+    "expected_failure_mode": "applying domain conventions (post-Brexit UK B2B place-of-supply)",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_014",
@@ -207,7 +259,11 @@
       "1": "Recognizes the HST should not have been charged but misses the zero-rated-export framing (treats it as out-of-scope or reverse-charge), OR fails to cite Excise Tax Act Schedule VI Part V, OR mishandles the on-site-vs-remote split (e.g. argues the on-site portion should be subject to HST)",
       "2": "Correctly identifies the supply as a zero-rated exported service under Schedule VI Part V section 7, addresses why the supplier's office-of-origin reasoning is wrong, addresses the on-site vs remote split correctly (it strengthens not weakens the zero-rating), prescribes rejection and corrected invoice, and addresses the reclaim impossibility"
     },
-    "expected_failure_mode": "applying domain conventions (Canadian GST/HST place-of-supply for exported services)"
+    "expected_failure_mode": "applying domain conventions (Canadian GST/HST place-of-supply for exported services)",
+    "question_type": "tactical",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null
   },
   {
     "id": "q_015",
@@ -222,6 +278,67 @@
       "1": "Identifies that Section 301 tariffs are the buyer's cost and not the supplier's, but misses the importer-classification-responsibility duty (19 U.S.C. §1484), OR misses the HTS classification challenge (8541 vs 8542 distinction), OR omits country-of-origin / First Sale / FTZ considerations entirely",
       "2": "Identifies tariff payment responsibility correctly, prescribes independent HTS classification review citing importer's §1484 duty of reasonable care, raises the 8541 vs 8542 sub-classification question, addresses country of origin / First Sale / FTZ / drawback as relevant control steps, and structures the response as a control-and-documentation workflow not just a tariff calculation"
     },
-    "expected_failure_mode": "multi-step trade compliance reasoning (HTS classification + Section 301 + importer-of-record responsibility)"
+    "expected_failure_mode": "multi-step trade compliance reasoning (HTS classification + Section 301 + importer-of-record responsibility)",
+    "question_type": "tactical",
+    "requires_assumption": true,
+    "source_grounded": false,
+    "source_doc": null
+  },
+  {
+    "id": "q_016",
+    "domain": "procurement",
+    "category": "invoice_processing",
+    "difficulty": "easy",
+    "question_type": "conceptual",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null,
+    "question": "Accounts Payable Days (also called Days Payables Outstanding, DPO) is computed using the AVERAGE accounts-payable balance over the period rather than the ending balance. Why? What problem does the averaging convention solve, and what would go wrong if a junior analyst used the ending AP balance instead?",
+    "context": "",
+    "ideal_answer": "[AI DRAFT — practitioner review required] DPO uses the AVERAGE accounts-payable balance because it reconciles a stock measure (AP, a balance-sheet item that exists as a snapshot) with a flow measure (purchases or COGS, an income-statement item that accumulates over a period). The averaging convention converts the stock measure into something comparable to the flow measure by representing the typical AP level throughout the period rather than a single point-in-time snapshot.\n\nWhat goes wrong with ending AP:\n\n1. **End-of-period anomalies distort the metric.** A company that pushes invoices out the door in the last week of the year (to compress AP for working-capital reporting) or holds invoices in the last week (to stretch DPO) will produce an ending balance that does not reflect typical operations. Average AP smooths these end-effects.\n\n2. **Consistency between numerator and denominator.** Purchases or COGS is an over-the-period number. If the denominator covers the full period, the numerator should represent the period too — average AP does that; ending AP doesn't.\n\n3. **Comparability across companies.** Different firms close their books on different cycles; ending AP varies systematically with fiscal calendar. Averaged AP is more comparable.\n\n4. **Audit defensibility.** Stock/flow consistency is a documented accounting principle (Holthausen & Zmijewski 2014). Using ending AP without disclosure invites a sourcing-quality challenge during diligence.\n\nThe canonical formula is therefore: DPO = (Average AP / Purchases) × N, where 'Average AP' is typically (Beginning AP + Ending AP) / 2 for annual analysis or a more granular average (monthly average) for shorter-period analysis. Some firms use COGS in the denominator instead of Purchases as a practical proxy when Purchases isn't disclosed; the stock/flow consistency principle still requires averaging.",
+    "rubric": {
+      "0": "Says ending AP is correct, OR fails to identify the stock/flow distinction, OR gives a definition without explaining the averaging convention",
+      "1": "Identifies that average AP is correct but does not articulate the stock/flow consistency reasoning, OR misses the end-of-period-anomaly distortion, OR gives the formula without the principle",
+      "2": "Articulates the stock/flow consistency principle as the underlying reason, identifies end-of-period anomalies as the concrete distortion that averaging solves, addresses comparability across firms, and references the canonical formula with the average-AP convention"
+    },
+    "expected_failure_mode": "applying domain conventions (stock-flow accounting principle)"
+  },
+  {
+    "id": "q_017",
+    "domain": "procurement",
+    "category": "invoice_processing",
+    "difficulty": "medium",
+    "question_type": "conceptual",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null,
+    "question": "Explain the difference between a 'duplicate vendor record' and a 'duplicate payment.' Both are control concerns and both can result in improper cash outflows, but they are caught by different control regimes. What's the distinction, and why is it operationally important to keep the two regimes separate?",
+    "context": "",
+    "ideal_answer": "[AI DRAFT — practitioner review required] **Duplicate vendor record** = the same legal entity appears twice (or more) in the supplier master under distinct vendor IDs. The records may have variant names, slightly different addresses, possibly different bank accounts. The legal entity is one; the master-data representation is multiple.\n\n**Duplicate payment** = the same invoice (same supplier, same invoice number, same amount, same period) gets paid more than once. Could happen against a single vendor record (e.g., supplier resubmits the invoice with a slight number variation and AP doesn't catch the match) or across two duplicate vendor records (the harder case to detect).\n\nThe two are categorically distinct because they sit on different sides of the P2P process and are caught by different controls:\n\n**Duplicate vendor record** is a master-data hygiene issue. Caught by:\n- Periodic vendor-master cleansing routines\n- TIN-based dedupe analytics (anchor on TIN, surface variant names)\n- Maker-checker on new vendor adds\n- Employee-vendor match analytics (employee data crossed against vendor data)\nThis regime operates BEFORE invoices are entered. It's a preventive control on the master data.\n\n**Duplicate payment** is a transaction-stream issue. Caught by:\n- (Vendor + invoice number) exact match at invoice entry\n- (Vendor + amount + date within window) fuzzy match\n- Cross-vendor amount + PO match (catches duplicates across two duplicate vendor records — the bridge case)\n- Reverse-amount matching (catches re-billing after a credit memo)\nThis regime operates AT invoice entry and is a detective/preventive control on the transaction.\n\n**Why the distinction is operationally important:**\n\n1. **Different ownership.** Master-data hygiene typically sits with a procurement-ops or master-data steward team. Duplicate-payment monitoring sits with AP. Conflating the two leads to ownership confusion and gap.\n\n2. **Different audit evidence.** SOX P2P walkthroughs sample the two regimes separately. A vendor-master walkthrough samples vendor adds; a duplicate-payment walkthrough samples payment runs. Auditors expect distinct evidence trails.\n\n3. **Different remediation paths.** A duplicate vendor record gets fixed by consolidation (with the multi-step pre-merge control sweep — see q_001). A duplicate payment gets fixed by recovery (vendor refund, contra-payable, or write-off if uncollectible).\n\n4. **The bridge case is where both regimes matter.** When a duplicate payment occurs ACROSS two duplicate vendor records, it would have been prevented if the master-data regime had caught the duplicate vendor first. This is why duplicate-payment monitoring should include cross-vendor-ID amount matching as a backstop to master-data hygiene gaps.\n\nKeeping the two distinct in the controls framework, in the audit workpapers, and in role assignments ensures both gaps get coverage rather than each assuming the other will catch it.",
+    "rubric": {
+      "0": "Treats the two as the same concept, OR fails to distinguish master-data from transaction-stream controls, OR provides only one regime's controls without the other",
+      "1": "Distinguishes the two phenomena but does not articulate the different control regimes, OR misses the bridge-case (duplicate payment across two duplicate vendor records), OR addresses only one of the operational-importance reasons",
+      "2": "Cleanly distinguishes master-data hygiene from transaction-stream control, names specific controls in each regime, identifies the bridge case (cross-vendor-ID matching), and addresses at least two of: ownership separation, audit-evidence separation, remediation-path differences"
+    },
+    "expected_failure_mode": "domain conventions (P2P control taxonomy)"
+  },
+  {
+    "id": "q_018",
+    "domain": "procurement",
+    "category": "close_and_controls",
+    "difficulty": "hard",
+    "question_type": "conceptual",
+    "requires_assumption": false,
+    "source_grounded": false,
+    "source_doc": null,
+    "question": "An improper payment was made. The same observable outcome ($X to wrong supplier or wrong amount) could be the result of a tactical 3-way-match exception that AP missed, OR a SOX P2P control design failure. The IT and audit treatment of these two diagnoses is very different. Explain the canonical hierarchy of control failures (transaction-level → policy-level → design-level), what evidence distinguishes each, and why it matters which diagnosis applies.",
+    "context": "",
+    "ideal_answer": "[AI DRAFT — practitioner review required] The canonical control-failure hierarchy goes from narrowest to broadest:\n\n**Tier 1 — Transaction-level failure (a single control instance failed to operate).**\nThe control existed and was designed correctly, but in this specific transaction it didn't catch the issue. Example: 3-way match was supposed to flag the price variance but the AP clerk overrode it without proper documentation. The clerk's override is the failure point.\n\nEvidence: the audit trail shows the control SHOULD have triggered (the variance was within the configured threshold), AND it shows manual override or bypass. The control configuration itself is correct.\n\nRemediation: re-train the operator, tighten override authority, add maker-checker on overrides. Narrow remediation, narrow disclosure.\n\n**Tier 2 — Policy-level failure (the control is designed correctly but the policy that governs it has a gap).**\nThe control as designed wouldn't have caught this fact pattern because the policy didn't anticipate the scenario. Example: 3-way match was configured for goods POs but services POs were exempted by policy without compensating control; an improper payment on a services PO slips through.\n\nEvidence: the audit trail shows the control did not trigger BECAUSE the transaction was out of the policy scope. No bypass occurred — the policy itself is the gap.\n\nRemediation: rewrite the policy to close the carve-out, add the compensating control, document the change. Broader remediation: every transaction in the policy gap window may need lookback review.\n\n**Tier 3 — Design-level failure (the control framework itself is structurally inadequate).**\nThe control as conceived cannot prevent the class of issue that occurred. Example: a single AP clerk has vendor-master add + invoice approval + payment initiation entitlements. The 3-way match working perfectly does not stop this person from creating a ghost vendor and routing payments to themselves — that's not what 3-way match controls. The SoD design is the failure.\n\nEvidence: the audit trail may show no individual control fired or failed; the loss occurred *between* controls or *outside* their scope. The framework, not the operation, is the gap.\n\nRemediation: redesign the control framework — entitlement architecture, SoD matrix, ITGC review cadence. Broadest remediation. Material weakness assessment. SOX 404 disclosure consideration. Possible restatement.\n\n**Why the diagnosis matters:**\n\n1. **Audit treatment.** Tier-1 is a 'control deficiency.' Tier-2 is typically a 'significant deficiency.' Tier-3 is most likely a 'material weakness.' Each has different SOX disclosure thresholds and different external-auditor responses.\n\n2. **Disclosure.** Material weakness requires Form 10-K Item 9A disclosure and adverse ICFR opinion; significant deficiency may not require external disclosure but requires audit committee communication. Control deficiency may stay in internal-audit workpapers.\n\n3. **Scope of remediation effort.** Tier-1 affects one role/process. Tier-2 affects every transaction in the policy gap window — lookback scope is significant. Tier-3 affects every transaction the design failure could have enabled — lookback scope is comprehensive (per the q_010 fact pattern, this is what drives the 24-36-month all-vendor lookback).\n\n4. **Investigation methodology.** Tier-1 is a process review (interview the clerk, review the override). Tier-2 is a policy review (compare written policy to the risk universe). Tier-3 is an architecture review (entitlement model, SoD matrix, ITGC) and typically pulls in IT audit, IS security, and possibly external counsel.\n\n5. **Where the same observable can be diagnosed differently.** A duplicate-payment fact pattern could be Tier-1 if the AP clerk missed an obvious match the system flagged; Tier-2 if the duplicate-detection rules don't cover cross-vendor-ID matching (a policy gap); Tier-3 if the same person who added the duplicate vendor is also approving payments (an SoD design gap that enabled the duplicate vendor in the first place). The diagnosis drives whether you fix the operator, the policy, or the architecture — and getting the diagnosis wrong leads to either over- or under-remediation.\n\nThe canonical investigation order is bottom-up: confirm Tier-1 first (was this an operator failure?), only escalate to Tier-2 if the operator-failure hypothesis doesn't fit (the system should have caught it but the configuration didn't), and only escalate to Tier-3 if the policy-failure hypothesis doesn't fit (the configuration was right but the framework was inadequate).\n\nReferences: PCAOB AS 2201 (definitions of control deficiency, significant deficiency, material weakness); COSO 2013 framework Component 4 'Control Activities' and Component 5 'Monitoring Activities'; SEC Regulation S-K Item 308.",
+    "rubric": {
+      "0": "Conflates the three tiers, OR fails to identify that the same observable can have different diagnoses, OR misses the audit / disclosure / remediation differences entirely",
+      "1": "Distinguishes the three tiers but does not address the bottom-up investigation order, OR misses the audit/disclosure thresholds (control deficiency / significant deficiency / material weakness), OR gives only one of the four 'why it matters' reasons",
+      "2": "Distinguishes all three tiers with concrete examples, addresses the audit / disclosure / remediation hierarchy (control deficiency → significant deficiency → material weakness), explains the bottom-up investigation order, gives a worked example showing the same observable resolving differently across tiers, and references the relevant audit framework (AS 2201 / COSO)"
+    },
+    "expected_failure_mode": "control framework reasoning under SOX (multi-tier diagnosis)"
   }
 ]
