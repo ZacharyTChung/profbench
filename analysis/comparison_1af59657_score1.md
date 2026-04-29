@@ -10,6 +10,115 @@ Only (b) and (c) justify editing `data/questions.json`. (a) is the benchmark wor
 
 ---
 
+## q_001 — supplier_data · easy · **score 1/2** (model: `claude-opus-4-7`)
+
+_Expected failure mode: domain vocabulary and normalization_
+
+### Question
+
+Are these two supplier master records duplicates? If yes, what is the correct resolution and which record should survive as the canonical entry? Justify briefly.
+
+### Context
+
+```
+Record A:
+  Name:    Acme Industrial Corp
+  TIN:     12-3456789
+  Address: 100 Main St, Suite 200, Newark, NJ 07102
+  Bank:    Chase ****4521
+  Status:  Active, last invoice 30 days ago
+
+Record B:
+  Name:    ACME INDUSTRIAL CORPORATION
+  TIN:     123456789
+  Address: 100 Main Street, Newark, NJ 07102
+  Bank:    Chase ****4521
+  Status:  Active, no activity in 18 months
+```
+
+### Rubric
+
+- **0**: Says they are not duplicates, or fails to identify the TIN match, or recommends keeping both records active without rule-out reasoning, or merges without any control-step consideration
+- **1**: Identifies them as duplicates via TIN normalization but treats name/address/contact variance as purely cosmetic, does not consider DBA or acquisition exceptions, OR misses the duplicate-payment lookback / open-document migration / bank-history checks before deactivation
+- **2**: Two-step framing (identity vs operational merge); identifies TIN as primary identity key; explicitly rules out DBA structure, acquisition/restructuring, and operating-unit separation as exception classes before merging; treats address/name/contact divergences as investigation triggers not cosmetic; prescribes the full pre-deactivation control sweep (open-doc migration, duplicate-payment lookback ≥24mo, bank-history check); addresses survivor selection with reasoning and documentation for SOX evidence
+
+### Ideal answer
+
+Yes, these are duplicates — but the analysis is two-step, not one-step. The first step is identity (is this the same legal entity?); the second is operational consolidation (should the two records be merged?). They are not the same question.
+
+**Step 1 — identity (TIN is primary).** The TINs are identical: '12-3456789' and '123456789' are the same nine-digit EIN; the hyphen is display formatting and TIN normalization (strip non-digits) is the correct primary-key match. With matching TIN, the records refer to the same legal entity for federal tax purposes. Name variance ('Corp' vs 'CORPORATION', case) and minor address formatting ('St' vs 'Street', the missing suite line) corroborate but don't determine — TIN match alone is sufficient for identity.
+
+**Step 2 — investigate before merging.** Same legal entity does not automatically mean the two records should be merged. Three exception classes need to be ruled out before consolidation:
+
+- **DBA structure.** A single legal entity (one TIN) frequently operates under multiple trade names — DBAs registered separately. 'Acme Industrial Corp' and 'ACME INDUSTRIAL CORPORATION' could be one DBA structure where one record represents the parent legal name and another represents an active DBA. Same TIN, different names, both valid records — deactivating either one breaks invoicing for that DBA. Confirm with the supplier whether they file as a single trade name or operate DBAs before merging.
+- **Acquisition / restructuring.** If the supplier was acquired in the last 24 months, both records may be intentionally retained: one for the legacy entity continuing limited operations under inherited contracts, one for the post-acquisition business. The TIN can be inherited or transitional. Pull the W-9 dates on both records and check whether they bracket a known acquisition or restructuring; if so, do not merge without confirming with the supplier's controller which entity is the surviving operating unit.
+- **Operating-unit separation under one TIN.** Even within a single legal entity with no DBAs and no recent M&A, divisions can intentionally maintain separate vendor records to keep AP segregated by business unit (different remit-to, different contacts, different cost centers). Merging breaks that segregation.
+
+The address, name, and contact divergences in this fact pattern are mild enough to fit "same operating unit, formatting variance" — but in any real case they should be questioned, not waved off as cosmetic. Address differences in particular should be confirmed: a change to a P.O. box, an unusual locality, or a recent change correlated with the dormancy is a fraud-screen indicator that overrides the consolidation question entirely.
+
+**Step 3 — if Step 2 confirms a true duplicate, consolidate with the following control steps in order:**
+
+1. Migrate open documents from Record B to Record A — open POs, in-flight invoices, recurring payment runs, active contracts. Buyer/contract owner sign-off on each migration. Don't deactivate B under live POs; that breaks the AP path on the next invoice.
+2. Run a duplicate-payment lookback across both vendor IDs over a window of at least Record B's lifespan or the firm's standard SOX lookback (typically 24 months), whichever is longer. Match on amount within ±$1, normalized invoice numbers, and dates within a 30-day window. Investigate any hits *before* consolidation — once merged, the trail across two IDs gets harder to reconstruct.
+3. Pull the bank-account history on both records. Even though both currently show ****4521, was there ever a divergence? A period where Record B's bank was different is a fraud-screen flag (someone may have routed payments to a side account before you started looking).
+4. Survivor selection: Record A (active, recent activity, more complete address). Deactivate B with a cross-reference to A so historical reporting rolls up cleanly.
+
+**Documentation:** the consolidation decision, the DBA/acquisition rule-out, the lookback results, and the bank-history check are all SOX-relevant evidence for the next vendor-master walkthrough. Maker-checker on the consolidation execution: AP clerk proposes, master-data steward executes, audit-line reviewer signs off.
+
+### Model response
+
+# Duplicate Determination
+
+**Yes — Records A and B are duplicates of the same legal entity.** This is a classic master-data duplication pattern, not two distinct suppliers.
+
+## Evidence Supporting the Match
+
+| Attribute | Record A | Record B | Assessment |
+|---|---|---|---|
+| Legal Name | Acme Industrial Corp | ACME INDUSTRIAL CORPORATION | Match (case + "Corp"/"Corporation" abbreviation variant) |
+| TIN/EIN | 12-3456789 | 123456789 | **Exact match** (formatting only — IRS EINs are 9 digits) |
+| Address | 100 Main St, Suite 200 | 100 Main Street | Same street/city/ZIP; A has suite-level granularity |
+| Bank Account | Chase ****4521 | Chase ****4521 | **Exact match** |
+| ZIP | 07102 | 07102 | Match |
+
+The **TIN + bank account + address + name** quadruple match is decisive. TIN alone is generally sufficient under IRS rules (one EIN per legal entity); combined with an identical bank routing/account, the probability of a false-positive match is effectively zero.
+
+## Recommended Resolution
+
+**Survivor: Record A.** Record B should be **merged into A and deactivated** (not deleted — retain for audit trail).
+
+### Justification for choosing A as canonical
+1. **Recent transactional activity** (invoice 30 days ago) — A is the record AP is actually paying against. Disturbing it risks payment disruption.
+2. **More complete address** — includes the Suite 200 sub-premise, which improves 1099 deliverability and remit-to accuracy.
+3. **Properly formatted TIN** (`12-3456789`) — matches IRS EIN presentation standard and is more likely to pass TIN-matching validation.
+4. **Record B has been dormant 18 months** — strong indicator it is a legacy/orphaned duplicate created before deduplication controls or via a separate onboarding event (e.g., different requester, different business unit).
+
+## Resolution Steps (Operational)
+
+1. **Freeze Record B** immediately (block for new POs and payments) to prevent further divergence.
+2. **Reassign open documents on B** — re-point any open POs, contracts, unpaid invoices, or pending receipts from B → A. Verify there are none given the 18-month inactivity, but confirm.
+3. **Merge transaction history** — link B's historical spend, 1099 history, and document attachments to A for reporting continuity (most ERPs, e.g., SAP MDG, Oracle, Coupa, support a vendor merge function).
+4. **Mark B as "Merged — Duplicate of A"** with a cross-reference field pointing to A's vendor ID. Set status to Inactive/Blocked. Do **not** hard-delete — retain for 7-year audit/tax retention.
+5. **Validate downstream**: 1099 YTD totals, open AP aging, and any procurement catalog references now resolve to A only.
+6. **Root-cause check**: investigate why duplicate was created (likely TIN was entered without the hyphen, bypassing the duplicate-check rule). Tighten the master-data rule to **normalize TIN (strip non-numerics) before uniqueness check**, and apply fuzzy-match on name + exact match on TIN/bank at vendor creation.
+
+## Risk Flags to Clear Before Merge
+- Confirm both records have **no open payments in flight** to avoid double-pay.
+- Confirm 1099-MISC/1099-NEC totals for the current tax year are not split across both records; if they are, consolidate before year-end filing.
+- Verify the bank account on file matches the supplier's most recent remittance instruction (the matching ****4521 is supportive but should be re-confirmed via callback control if any payment data changes during the merge).
+
+### Grader verdict
+
+- **Score:** 1
+- **Confidence:** high
+- **Reasoning:** The response correctly identifies the records as duplicates via TIN normalization and selects Record A as survivor with good reasoning. It includes some control steps (freeze, reassign open docs, merge history, cross-reference, retention) and even adds a root-cause check and 1099 consideration. However, it misses key rubric elements for a 2: (1) no two-step framing distinguishing identity from operational merge; (2) does not rule out DBA structure, acquisition/restructuring, or operating-unit separation as exception classes — instead assumes duplication and proceeds to merge; (3) treats name/address variances as cosmetic/supportive rather than investigation triggers; (4) does not prescribe a duplicate-payment lookback (≥24 months) across both vendor IDs; (5) does not call for a bank-history divergence check as a fraud screen. These are substantive omissions that the rubric explicitly flags for the 1-tier.
+
+### Decision (fill in)
+
+_(a) model fell short / (b) ideal too narrow / (c) rubric miscalibrated_
+
+---
+
 ## q_001 — supplier_data · easy · **score 1/2** (model: `claude-sonnet-4-6`)
 
 _Expected failure mode: domain vocabulary and normalization_
@@ -38,15 +147,32 @@ Record B:
 
 ### Rubric
 
-- **0**: Says they are not duplicates, or fails to identify the TIN match, or recommends keeping both records active
-- **1**: Identifies them as duplicates but misses the TIN-normalization reasoning, the dup-payment check, or the open-document migration step
-- **2**: Identifies the duplicate via TIN normalization, picks the correct survivor with reasoning, and includes both the open-document migration and duplicate-payment lookback as control steps
+- **0**: Says they are not duplicates, or fails to identify the TIN match, or recommends keeping both records active without rule-out reasoning, or merges without any control-step consideration
+- **1**: Identifies them as duplicates via TIN normalization but treats name/address/contact variance as purely cosmetic, does not consider DBA or acquisition exceptions, OR misses the duplicate-payment lookback / open-document migration / bank-history checks before deactivation
+- **2**: Two-step framing (identity vs operational merge); identifies TIN as primary identity key; explicitly rules out DBA structure, acquisition/restructuring, and operating-unit separation as exception classes before merging; treats address/name/contact divergences as investigation triggers not cosmetic; prescribes the full pre-deactivation control sweep (open-doc migration, duplicate-payment lookback ≥24mo, bank-history check); addresses survivor selection with reasoning and documentation for SOX evidence
 
 ### Ideal answer
 
-Yes, these are duplicates. The TINs are identical — '12-3456789' and '123456789' are the same nine-digit EIN; the hyphen is a display convention only and TIN normalization (strip non-digits) is the correct primary-key match. Name variance ('Corp' vs. 'CORPORATION', case) is a normalization issue, not a different entity. Same bank account (Chase ****4521) is a strong corroborating signal. Address differs only in 'St' vs. 'Street' and the absent suite line on B — same street address.
+Yes, these are duplicates — but the analysis is two-step, not one-step. The first step is identity (is this the same legal entity?); the second is operational consolidation (should the two records be merged?). They are not the same question.
 
-Resolution: merge under a single canonical record. Survivor selection: keep Record A (active, recent activity, more complete address). Deactivate Record B with a cross-reference to A so historical AP/spend reporting still rolls up. Move any open POs/invoices on B to A before deactivation. Run a duplicate-payment check across both record IDs for the last 18 months as a control step (a duplicate vendor record is a known precondition for duplicate payments).
+**Step 1 — identity (TIN is primary).** The TINs are identical: '12-3456789' and '123456789' are the same nine-digit EIN; the hyphen is display formatting and TIN normalization (strip non-digits) is the correct primary-key match. With matching TIN, the records refer to the same legal entity for federal tax purposes. Name variance ('Corp' vs 'CORPORATION', case) and minor address formatting ('St' vs 'Street', the missing suite line) corroborate but don't determine — TIN match alone is sufficient for identity.
+
+**Step 2 — investigate before merging.** Same legal entity does not automatically mean the two records should be merged. Three exception classes need to be ruled out before consolidation:
+
+- **DBA structure.** A single legal entity (one TIN) frequently operates under multiple trade names — DBAs registered separately. 'Acme Industrial Corp' and 'ACME INDUSTRIAL CORPORATION' could be one DBA structure where one record represents the parent legal name and another represents an active DBA. Same TIN, different names, both valid records — deactivating either one breaks invoicing for that DBA. Confirm with the supplier whether they file as a single trade name or operate DBAs before merging.
+- **Acquisition / restructuring.** If the supplier was acquired in the last 24 months, both records may be intentionally retained: one for the legacy entity continuing limited operations under inherited contracts, one for the post-acquisition business. The TIN can be inherited or transitional. Pull the W-9 dates on both records and check whether they bracket a known acquisition or restructuring; if so, do not merge without confirming with the supplier's controller which entity is the surviving operating unit.
+- **Operating-unit separation under one TIN.** Even within a single legal entity with no DBAs and no recent M&A, divisions can intentionally maintain separate vendor records to keep AP segregated by business unit (different remit-to, different contacts, different cost centers). Merging breaks that segregation.
+
+The address, name, and contact divergences in this fact pattern are mild enough to fit "same operating unit, formatting variance" — but in any real case they should be questioned, not waved off as cosmetic. Address differences in particular should be confirmed: a change to a P.O. box, an unusual locality, or a recent change correlated with the dormancy is a fraud-screen indicator that overrides the consolidation question entirely.
+
+**Step 3 — if Step 2 confirms a true duplicate, consolidate with the following control steps in order:**
+
+1. Migrate open documents from Record B to Record A — open POs, in-flight invoices, recurring payment runs, active contracts. Buyer/contract owner sign-off on each migration. Don't deactivate B under live POs; that breaks the AP path on the next invoice.
+2. Run a duplicate-payment lookback across both vendor IDs over a window of at least Record B's lifespan or the firm's standard SOX lookback (typically 24 months), whichever is longer. Match on amount within ±$1, normalized invoice numbers, and dates within a 30-day window. Investigate any hits *before* consolidation — once merged, the trail across two IDs gets harder to reconstruct.
+3. Pull the bank-account history on both records. Even though both currently show ****4521, was there ever a divergence? A period where Record B's bank was different is a fraud-screen flag (someone may have routed payments to a side account before you started looking).
+4. Survivor selection: Record A (active, recent activity, more complete address). Deactivate B with a cross-reference to A so historical reporting rolls up cleanly.
+
+**Documentation:** the consolidation decision, the DBA/acquisition rule-out, the lookback results, and the bank-history check are all SOX-relevant evidence for the next vendor-master walkthrough. Maker-checker on the consolidation execution: AP clerk proposes, master-data steward executes, audit-line reviewer signs off.
 
 ### Model response
 
@@ -86,7 +212,7 @@ The TIN is the definitive identifier — it is the same number in both records. 
 
 - **Score:** 1
 - **Confidence:** high
-- **Reasoning:** The response correctly identifies the records as duplicates, explicitly notes the TIN match with formatting normalization, picks Record A as the survivor with sound reasoning, and includes the open-document migration step. However, it does not include the duplicate-payment lookback/check as a control step, which is a required element for a score of 2.
+- **Reasoning:** The candidate correctly identifies the records as duplicates via TIN normalization and selects Record A as survivor with reasonable justification. However, it falls short of a 2: it does not provide the two-step framing (identity vs operational merge), does not rule out DBA structure, acquisition/restructuring, or operating-unit separation as exception classes (in fact it casually suggests the name might be a DBA but then proceeds to merge anyway), treats address/name variance as cosmetic rather than investigation triggers, and crucially misses the pre-deactivation control sweep — no duplicate-payment lookback, no bank-history divergence check, and only a vague 'merge open POs' rather than a controlled migration with sign-off. SOX/maker-checker documentation is also absent.
 
 ### Decision (fill in)
 
@@ -122,15 +248,32 @@ Record B:
 
 ### Rubric
 
-- **0**: Says they are not duplicates, or fails to identify the TIN match, or recommends keeping both records active
-- **1**: Identifies them as duplicates but misses the TIN-normalization reasoning, the dup-payment check, or the open-document migration step
-- **2**: Identifies the duplicate via TIN normalization, picks the correct survivor with reasoning, and includes both the open-document migration and duplicate-payment lookback as control steps
+- **0**: Says they are not duplicates, or fails to identify the TIN match, or recommends keeping both records active without rule-out reasoning, or merges without any control-step consideration
+- **1**: Identifies them as duplicates via TIN normalization but treats name/address/contact variance as purely cosmetic, does not consider DBA or acquisition exceptions, OR misses the duplicate-payment lookback / open-document migration / bank-history checks before deactivation
+- **2**: Two-step framing (identity vs operational merge); identifies TIN as primary identity key; explicitly rules out DBA structure, acquisition/restructuring, and operating-unit separation as exception classes before merging; treats address/name/contact divergences as investigation triggers not cosmetic; prescribes the full pre-deactivation control sweep (open-doc migration, duplicate-payment lookback ≥24mo, bank-history check); addresses survivor selection with reasoning and documentation for SOX evidence
 
 ### Ideal answer
 
-Yes, these are duplicates. The TINs are identical — '12-3456789' and '123456789' are the same nine-digit EIN; the hyphen is a display convention only and TIN normalization (strip non-digits) is the correct primary-key match. Name variance ('Corp' vs. 'CORPORATION', case) is a normalization issue, not a different entity. Same bank account (Chase ****4521) is a strong corroborating signal. Address differs only in 'St' vs. 'Street' and the absent suite line on B — same street address.
+Yes, these are duplicates — but the analysis is two-step, not one-step. The first step is identity (is this the same legal entity?); the second is operational consolidation (should the two records be merged?). They are not the same question.
 
-Resolution: merge under a single canonical record. Survivor selection: keep Record A (active, recent activity, more complete address). Deactivate Record B with a cross-reference to A so historical AP/spend reporting still rolls up. Move any open POs/invoices on B to A before deactivation. Run a duplicate-payment check across both record IDs for the last 18 months as a control step (a duplicate vendor record is a known precondition for duplicate payments).
+**Step 1 — identity (TIN is primary).** The TINs are identical: '12-3456789' and '123456789' are the same nine-digit EIN; the hyphen is display formatting and TIN normalization (strip non-digits) is the correct primary-key match. With matching TIN, the records refer to the same legal entity for federal tax purposes. Name variance ('Corp' vs 'CORPORATION', case) and minor address formatting ('St' vs 'Street', the missing suite line) corroborate but don't determine — TIN match alone is sufficient for identity.
+
+**Step 2 — investigate before merging.** Same legal entity does not automatically mean the two records should be merged. Three exception classes need to be ruled out before consolidation:
+
+- **DBA structure.** A single legal entity (one TIN) frequently operates under multiple trade names — DBAs registered separately. 'Acme Industrial Corp' and 'ACME INDUSTRIAL CORPORATION' could be one DBA structure where one record represents the parent legal name and another represents an active DBA. Same TIN, different names, both valid records — deactivating either one breaks invoicing for that DBA. Confirm with the supplier whether they file as a single trade name or operate DBAs before merging.
+- **Acquisition / restructuring.** If the supplier was acquired in the last 24 months, both records may be intentionally retained: one for the legacy entity continuing limited operations under inherited contracts, one for the post-acquisition business. The TIN can be inherited or transitional. Pull the W-9 dates on both records and check whether they bracket a known acquisition or restructuring; if so, do not merge without confirming with the supplier's controller which entity is the surviving operating unit.
+- **Operating-unit separation under one TIN.** Even within a single legal entity with no DBAs and no recent M&A, divisions can intentionally maintain separate vendor records to keep AP segregated by business unit (different remit-to, different contacts, different cost centers). Merging breaks that segregation.
+
+The address, name, and contact divergences in this fact pattern are mild enough to fit "same operating unit, formatting variance" — but in any real case they should be questioned, not waved off as cosmetic. Address differences in particular should be confirmed: a change to a P.O. box, an unusual locality, or a recent change correlated with the dormancy is a fraud-screen indicator that overrides the consolidation question entirely.
+
+**Step 3 — if Step 2 confirms a true duplicate, consolidate with the following control steps in order:**
+
+1. Migrate open documents from Record B to Record A — open POs, in-flight invoices, recurring payment runs, active contracts. Buyer/contract owner sign-off on each migration. Don't deactivate B under live POs; that breaks the AP path on the next invoice.
+2. Run a duplicate-payment lookback across both vendor IDs over a window of at least Record B's lifespan or the firm's standard SOX lookback (typically 24 months), whichever is longer. Match on amount within ±$1, normalized invoice numbers, and dates within a 30-day window. Investigate any hits *before* consolidation — once merged, the trail across two IDs gets harder to reconstruct.
+3. Pull the bank-account history on both records. Even though both currently show ****4521, was there ever a divergence? A period where Record B's bank was different is a fraud-screen flag (someone may have routed payments to a side account before you started looking).
+4. Survivor selection: Record A (active, recent activity, more complete address). Deactivate B with a cross-reference to A so historical reporting rolls up cleanly.
+
+**Documentation:** the consolidation decision, the DBA/acquisition rule-out, the lookback results, and the bank-history check are all SOX-relevant evidence for the next vendor-master walkthrough. Maker-checker on the consolidation execution: AP clerk proposes, master-data steward executes, audit-line reviewer signs off.
 
 ### Model response
 
@@ -183,7 +326,7 @@ This consolidation prevents payment splits, duplicate invoicing, and reporting i
 
 - **Score:** 1
 - **Confidence:** high
-- **Reasoning:** The response correctly identifies the records as duplicates via TIN normalization (noting the hyphen is formatting only) and selects Record A as the survivor with sound reasoning. It mentions consolidating transaction history, which loosely covers open-document migration. However, it does not explicitly call out a duplicate-payment lookback/check as a control step, which is a key rubric requirement for a score of 2. The open-document migration is also only weakly addressed (general 'consolidate transaction history' rather than explicit migration of open POs/invoices).
+- **Reasoning:** Identifies duplicates via TIN normalization correctly and selects Record A as survivor with reasonable justification. However, treats name/address variances as cosmetic formatting differences rather than investigation triggers. Does not consider DBA structure, acquisition/restructuring, or operating-unit separation as exception classes. Misses the critical pre-deactivation controls: duplicate-payment lookback across both vendor IDs, bank-history check for prior divergence, open-document migration with sign-off, and SOX documentation. The 'merge and delete' recommendation lacks the control sweep required for a score of 2.
 
 ### Decision (fill in)
 
