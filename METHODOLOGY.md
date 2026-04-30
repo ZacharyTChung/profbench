@@ -24,7 +24,7 @@ practitioner instead of a 100k-expert network.
 ## What is built (concretely)
 
 ### Data
-- `data/questions.json` — 10 expert-style questions with rubrics, ideal answers, expected failure modes, and difficulty tags. Spans 4 categories: `supplier_data`, `invoice_processing`, `trade_and_tax`, `close_and_controls`. Difficulty mix: 2 easy / 4 medium / 4 hard.
+- `data/questions.json` — 18 expert-style questions with rubrics, ideal answers, expected failure modes, and difficulty tags. Spans 4 categories: `supplier_data`, `invoice_processing`, `trade_and_tax`, `close_and_controls`. Difficulty mix: 3 easy / 9 medium / 6 hard. Question-type mix: 15 tactical (11 basic + 4 assumption) / 3 conceptual.
 - `data/anchors/` — real public records (USAspending, Chicago Payments, OFAC SDN) used to ground question scenarios in real-world data. Mapped per-question.
 - `data/profbench_export.json` — Hugging Face-ready dataset export bundling questions, responses, and scores for one run.
 
@@ -58,7 +58,7 @@ practitioner instead of a 100k-expert network.
                        │
                        ▼
   ┌──────────────────────────────────────────────────────────────────┐
-  │ 6. eval run                 N models × 10 questions → responses  │
+  │ 6. eval run                 N models × 18 questions → responses  │
   │ 7. autograde                Claude-as-judge → scores in DB       │
   │ 8. (optional) human grade   Streamlit UI → manual scores in DB   │
   └────────────────────┬─────────────────────────────────────────────┘
@@ -89,9 +89,9 @@ Mapping ProfBench to those steps:
 
 | AQ step | What it requires | ProfBench coverage |
 | ------- | --------------- | ------------------ |
-| 1 — expert identification | Many vetted experts | The author of this repo *is* one expert. Solo single-domain coverage. |
-| 2 — reasoning steps | Step-by-step traces, not just final answers | **Partial.** Current `ideal_answer` field stores polished final answers, not reasoning traces. **This is the load-bearing upgrade for SFT-quality data.** |
-| 3a — SFT pairs | Expert chain-of-thought as training pairs | Not produced today. Reachable by reformatting `ideal_answer` to traces. |
+| 1 — expert identification | Many vetted experts with depth across all sub-domains | **Partial.** The author has operational depth in `supplier_data` and procurement-operations workflows, and shallower depth in `trade_and_tax` (Incoterms, OFAC 50% rule, FinCEN BOI, EU VAT) and `close_and_controls` (SOX P2P, AS 2201 material-weakness reasoning, ghost-vendor heuristics). External SME validation is the open gap — see `REVIEW_REQUEST.md`. |
+| 2 — reasoning steps | Step-by-step traces, not just final answers | **Partial.** First-pass reasoning traces exist in `data/traces/` for q_001, q_003, q_010, written in **cited-authority style** (anchored to PCAOB / COSO / OFAC / IRS / Incoterms primary sources) rather than working-practitioner voice. See "Authorship constraint" below for what this trades off. |
+| 3a — SFT pairs | Expert chain-of-thought as training pairs | **Weak.** Authority-grounded traces are eval-defensible but lack the working heuristics and edge-case rolodex that make practitioner-voice SFT data uniquely valuable. Upgrading to true practitioner-voice requires the SME pass in `REVIEW_REQUEST.md`. |
 | 3b — RL + rubrics | Rubrics as reward signals | ✅ rubrics exist in 0/1/2 format. Coarse but usable. |
 | 4 — eval environment | Market-Bench-style harness | ✅ this is exactly what ProfBench is. |
 | 5 — actual training | Anthropic-scale infra | Out of scope. Not a solo-doable step. |
@@ -106,11 +106,23 @@ things that *feed* the AfterQuery pipeline:
 
 ## What this is not
 
-- **Not a training dataset.** SFT data needs reasoning traces (step 2), not static ideal answers. Reformatting questions toward traces is the pending upgrade.
+- **Not a training dataset.** SFT data needs reasoning traces (step 2), not static ideal answers. The traces in `data/traces/` are cited-authority drafts and useful as a starting point, but practitioner-voice SFT data requires the external review described in `REVIEW_REQUEST.md`.
+- **Not a fully practitioner-voiced benchmark.** See "Authorship constraint" below — authored by one practitioner whose depth is uneven across the four categories, with the gap filled by primary-source citations rather than working experience.
 - **Not an agentic eval.** Current questions are single-turn Q&A. No tool use, no multi-turn workflows. AfterQuery's Terminal-Bench / UI-Bench tier requires that and would require new harness work.
 - **Not a multimodal eval.** Procurement records are often spreadsheets, PDFs, scanned invoices. Current questions are text-only.
 
-These three gaps are the realistic v2 directions if scope expands.
+These four gaps are the realistic v2+ directions.
+
+## Authorship constraint
+
+The single biggest deviation from AfterQuery's pipeline standard is in **step 1**. ProfBench was authored by one practitioner with operational depth in `supplier_data` and procurement-operations sub-domains, and shallower depth in `trade_and_tax` (Incoterms, OFAC 50% rule, FinCEN BOI, EU VAT place-of-supply, Section 301 tariffs) and `close_and_controls` (SOX P2P, AS 2201 material-weakness reasoning, ghost-vendor / structuring detection heuristics).
+
+Where the author's working experience does not extend, the reasoning-trace drafts in `data/traces/` are written in **cited-authority style** — anchored to PCAOB AS 2201, COSO 2013, OFAC FAQ, FinCEN BOI rule, IRS Pub 1281 / 515, Incoterms 2020 (ICC 723E), and similar primary sources rather than to working-practitioner heuristics. This is a knowingly weaker substitute for the AfterQuery standard:
+
+- **For evaluation:** the rubric-graded benchmark remains defensible. Questions are answerable from cited authority; a model that lands at 0/2 on a question demonstrably failed to apply named primary sources.
+- **For SFT data:** authority-grounded traces are *not* a substitute for practitioner-voice traces. They lack the working heuristics, idiosyncratic edge cases, and "what I actually do first when this hits my queue" content that AfterQuery's pitch turns on. Upgrading individual questions to practitioner-grade requires an external SME pass — see `REVIEW_REQUEST.md` for the outreach plan and per-question status.
+
+The honest framing: ProfBench v0.3 is the **FinanceQA methodology applied to procurement, with first-pass cited-authority answers and an open call for practitioner review** — not a completed AfterQuery-pipeline expert benchmark.
 
 ## Calibration discipline
 
@@ -130,8 +142,8 @@ does is the failure mode that destroys the benchmark's value.
 
 - **Self-grading bias:** the autograder uses Opus 4.7. When Opus 4.7 is itself one of the evaluated models, that's self-grading bias — note in any published report. Mitigation: cross-grade with a different model family (e.g., GPT-4o or Gemini) when keys are available.
 - **Single grader:** one autograder pass per response. AfterQuery production-grade methodology runs multiple grader passes and reports inter-grader agreement. To approximate, run human scoring via `scorer/app.py` on a subset and compute auto-vs-manual agreement.
-- **Sample size:** 10 questions is a pilot. A defensible Market-Bench-style submission targets 50-200 questions across more diverse failure modes.
-- **Single domain expert:** all questions, ideal answers, and rubrics come from one practitioner. AQ's published methodology emphasizes peer review by multiple domain experts to catch idiosyncratic biases.
+- **Sample size:** 18 questions is a pilot. A defensible Market-Bench-style submission targets 50-200 questions across more diverse failure modes.
+- **Single domain expert with uneven depth:** see "Authorship constraint" above. The supplier_data sub-domain is practitioner-voiced; trade_and_tax and close_and_controls are cited-authority-grounded pending external SME review.
 
 ## Question taxonomy (FinanceQA-aligned)
 
@@ -175,12 +187,13 @@ Citing primary sources rather than secondary summaries is what keeps the rubric 
 
 ## Pending work (in priority order)
 
-1. Walk `analysis/comparison_<run>.md` for every non-2 score; classify (a)/(b)/(c); make narrow rubric edits where warranted.
-2. Convert `ideal_answer` from polished prose to step-by-step reasoning traces — pushes the artifact from step-4-only to step-2-adjacent.
-3. Expand from 10 to 30-50 questions covering more failure modes.
-4. Cross-grader run (different model family as judge) to retire self-grading bias.
-5. Manual scoring on a subset → inter-rater agreement statistics.
-6. Multi-turn / agentic version of select questions (give the model real tools to call; score on tool-use trajectory). Scope = significant.
+1. **External SME review** of cited-authority traces and ideal answers — see `REVIEW_REQUEST.md`. This is the load-bearing upgrade from "FinanceQA methodology applied to procurement" toward "AfterQuery-pipeline expert benchmark." Highest priority because everything below it inherits the authorship-depth ceiling.
+2. Walk `analysis/comparison_<run>.md` for every non-2 score; classify (a)/(b)/(c); make narrow rubric edits where warranted (`analysis/triage_score1.md` is the starting point).
+3. Convert remaining 15 `ideal_answer` fields to authority-grounded reasoning traces in the same form as `data/traces/q_001_trace.md` / `q_003_trace.md` / `q_010_trace.md`.
+4. Expand from 18 to 30-50 questions covering more failure modes — skewing toward `requires_assumption: true` (currently 4/18) and `source_grounded: true` (currently 3/18) since those are the FinanceQA-identified killer categories.
+5. Cross-grader run (different model family as judge) to retire self-grading bias.
+6. Manual scoring on a subset → inter-rater agreement statistics.
+7. Multi-turn / agentic version of select questions (give the model real tools to call; score on tool-use trajectory). Scope = significant.
 
 ## References (paper-style citation list)
 

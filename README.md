@@ -18,6 +18,16 @@ either manually in a Streamlit UI or by Claude as autograder. See
 [METHODOLOGY.md](METHODOLOGY.md) for the full FinanceQA-aligned methodology
 and the AfterQuery pipeline mapping.
 
+> **v0.3 framing note.** The author has operational depth in supplier-data /
+> procurement-operations and shallower depth in trade-and-tax and SOX / close
+> controls. Where practitioner experience does not extend, reasoning-trace
+> drafts are written in **cited-authority style** (anchored to PCAOB AS 2201,
+> COSO 2013, OFAC FAQ, FinCEN BOI, IRS Pub 1281/515, Incoterms 2020, etc.)
+> rather than working-practitioner voice. This is eval-defensible but a
+> knowingly weaker substitute for AfterQuery-grade SFT data. See
+> [METHODOLOGY.md § Authorship constraint](METHODOLOGY.md#authorship-constraint)
+> and [REVIEW_REQUEST.md](REVIEW_REQUEST.md) for the external-review plan.
+
 ## What is ProfBench
 
 A local toolkit that lets a domain expert: (1) curate a question bank of hard,
@@ -155,21 +165,21 @@ responses, and scores for the most recent run.
 See [METHODOLOGY.md](METHODOLOGY.md) for the full workflow description and the
 mapping to AfterQuery's expert-in-the-loop data generation pipeline.
 
-## Status (v0.2)
+## Status (v0.3)
 
 - ✅ 18 questions across 4 categories, 3 difficulties (15 tactical / 3 conceptual; 4 require assumption; 3 source-grounded)
 - ✅ Eval harness, autograder, leaderboard, auto-derived loss implications, HF export
 - ✅ Multi-model pilot run on full 18Q (Opus 4.7, Sonnet 4.6, Haiku 4.5) — numbers above; see `leaderboard/leaderboard.md`
 - ✅ Anchor data for q_001 (supplier dedupe), q_004 (duplicate detection), q_009 (sanctions)
-- ✅ Reasoning-trace templates and AI-draft traces for q_001, q_003, q_010 (`data/traces/`) — pending practitioner edits
-- ✅ q_001 `ideal_answer` practitioner-validated (first of 18)
-- ✅ Score-1 triage written for the latest run (`analysis/triage_score1.md`) — flags q_003 tier-2 (tolerance convention) as a candidate rubric edit
-- ⚠ Remaining 17 `ideal_answer` fields are first-pass and awaiting full expert validation
-- ⚠ Single domain expert (no peer review yet)
+- ✅ Cited-authority reasoning traces for q_001, q_003, q_010 (`data/traces/`) — anchored to PCAOB / COSO / OFAC / IRS / Incoterms primary sources rather than working-practitioner voice (see [METHODOLOGY.md § Authorship constraint](METHODOLOGY.md#authorship-constraint))
+- ✅ q_003 rubric calibrated to accept both tolerance conventions (`<` and `≤`) per `analysis/triage_score1.md`
+- ✅ Score-1 triage written for the latest run (`analysis/triage_score1.md`)
+- ⚠ Author depth is uneven across categories: operational depth in `supplier_data`; cited-authority-only in `trade_and_tax` and `close_and_controls`. External SME validation pending — see [REVIEW_REQUEST.md](REVIEW_REQUEST.md)
+- ⚠ Single grader (no peer review yet)
 - ⚠ Self-grading bias when Opus 4.7 is among evaluated models (also acts as judge)
-- ☐ Practitioner edits to AI-draft traces (q_001, q_003, q_010) and conversion to chat-format SFT pairs
-- ☐ Reasoning-trace templates for the remaining 15 questions
-- ☐ Expansion to 30+ questions (18 of 30 done)
+- ☐ External SME review of cited-authority traces and `ideal_answer` fields ([REVIEW_REQUEST.md](REVIEW_REQUEST.md))
+- ☐ Cited-authority traces for the remaining 15 questions
+- ☐ Expansion to 30+ questions (18 of 30 done) — skewing toward assumption-based and source-grounded
 - ☐ Cross-grader run with non-Anthropic judge (requires OpenAI / Google key)
 
 ## Citation
@@ -179,6 +189,6 @@ mapping to AfterQuery's expert-in-the-loop data generation pipeline.
   title  = {ProfBench: A domain-specific LLM benchmark for procurement / source-to-pay reasoning},
   author = {Chung, Zachary T.},
   year   = {2026},
-  note   = {Version 0.2.0}
+  note   = {Version 0.3.0}
 }
 ```
