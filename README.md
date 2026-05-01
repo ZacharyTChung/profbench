@@ -165,6 +165,12 @@ responses, and scores for the most recent run.
 See [METHODOLOGY.md](METHODOLOGY.md) for the full workflow description and the
 mapping to AfterQuery's expert-in-the-loop data generation pipeline.
 
+## Code tour
+
+See [CODE_TOUR.md](CODE_TOUR.md) for a top-to-bottom walkthrough of the
+codebase — the data flow, per-module purpose, database schema, and
+"I want to do X" recipes.
+
 ## Status (v0.3)
 
 - ✅ 18 questions across 4 categories, 3 difficulties (15 tactical / 3 conceptual; 4 require assumption; 3 source-grounded)
