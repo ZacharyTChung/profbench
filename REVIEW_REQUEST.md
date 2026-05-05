@@ -49,26 +49,31 @@ inspection.
 
 ## Per-question status and what we are asking for
 
-| ID | Category | Difficulty | Trace status | Strongest review need |
+All 18 questions now have cited-authority trace drafts in `data/traces/`.
+The strongest review need for each is its `[Authority gap]`-flagged
+heuristics (§3) and edge cases (§4) — sections framework material can
+sketch but only practitioners can fill credibly.
+
+| ID | Category | Difficulty | Trace | Strongest review need |
 |---|---|---|---|---|
-| q_001 | supplier_data | easy | [Cited authority](data/traces/q_001_trace.md) | Section 3 heuristics — TIN matching workflows, dormant-record fraud signals |
-| q_002 | invoice_processing | easy | No trace yet | After-the-fact PO controls, legal engagement-letter-as-PO conditions |
-| q_003 | invoice_processing | medium | [Cited authority](data/traces/q_003_trace.md) | Section 3-4 — your firm's actual ERP tolerance convention, freight default policy, edge cases from real exception queues |
-| q_004 | supplier_data | medium | No trace yet | Duplicate-payment detection rules; cross-vendor pattern matching |
-| q_005 | trade_and_tax | medium | No trace yet | FCA Incoterm — what's embedded in price, what's billable separately |
-| q_006 | trade_and_tax | hard | No trace yet | W-8 / 1042-S / source-of-income split; nonresident withholding |
-| q_007 | trade_and_tax | hard | No trace yet | EU VAT establishment confirmation under Council Implementing Regulation 282/2011 |
-| q_008 | close_and_controls | hard | No trace yet | GR/IR aging at period-close; what is and isn't accruable |
-| q_009 | supplier_data | hard | No trace yet | OFAC 50% rule; FinCEN BOI under 31 CFR §1010.380; sanctions screening workflows |
-| q_010 | close_and_controls | hard | [Cited authority](data/traces/q_010_trace.md) | Section 3-4 — real ghost-vendor detection heuristics; section 5b material-weakness judgment call |
-| q_011 | supplier_data | medium | No trace yet | IRS TIN matching workflow application |
-| q_012 | invoice_processing | medium | No trace yet | BEC / business-email-compromise defense; control rigor under social engineering |
-| q_013 | trade_and_tax | medium | No trace yet | Post-Brexit UK B2B place-of-supply |
-| q_014 | trade_and_tax | medium | No trace yet | Canadian GST/HST place-of-supply for exported services |
-| q_015 | trade_and_tax | hard | No trace yet | HTS classification + Section 301 tariffs + importer-of-record |
-| q_016 | close_and_controls | medium | No trace yet | DPO stock-flow accounting principle |
-| q_017 | invoice_processing | medium | No trace yet | Duplicate-vendor vs duplicate-payment distinction (P2P control taxonomy) |
-| q_018 | close_and_controls | hard | No trace yet | Control-failure tier hierarchy under SOX (multi-tier diagnosis) |
+| q_001 | supplier_data | easy | [trace](data/traces/q_001_trace.md) | TIN-matching workflows, dormant-record fraud signals |
+| q_002 | invoice_processing | easy | [trace](data/traces/q_002_trace.md) | After-the-fact PO controls, legal engagement-letter-as-PO conditions |
+| q_003 | invoice_processing | medium | [trace](data/traces/q_003_trace.md) | Firm's actual ERP tolerance convention, freight default policy, edge cases from real exception queues |
+| q_004 | invoice_processing | medium | [trace](data/traces/q_004_trace.md) | Duplicate-payment detection rules; cross-vendor pattern matching |
+| q_005 | trade_and_tax | medium | [trace](data/traces/q_005_trace.md) | FCA Incoterm — what's embedded in price, what's billable separately |
+| q_006 | trade_and_tax | medium | [trace](data/traces/q_006_trace.md) | W-8 / 1042-S / source-of-income split; nonresident withholding |
+| q_007 | trade_and_tax | hard | [trace](data/traces/q_007_trace.md) | EU VAT establishment confirmation under Council Implementing Regulation 282/2011 |
+| q_008 | close_and_controls | hard | [trace](data/traces/q_008_trace.md) | GR/IR aging at period-close; what is and isn't accruable |
+| q_009 | supplier_data | hard | [trace](data/traces/q_009_trace.md) | OFAC 50% rule; FinCEN BOI under 31 CFR §1010.380; sanctions screening workflows |
+| q_010 | close_and_controls | hard | [trace](data/traces/q_010_trace.md) | Real ghost-vendor detection heuristics; §5b material-weakness judgment call |
+| q_011 | supplier_data | medium | [trace](data/traces/q_011_trace.md) | IRS TIN matching workflow application |
+| q_012 | supplier_data | medium | [trace](data/traces/q_012_trace.md) | BEC defense; control rigor under social engineering |
+| q_013 | trade_and_tax | medium | [trace](data/traces/q_013_trace.md) | Post-Brexit UK B2B place-of-supply |
+| q_014 | trade_and_tax | medium | [trace](data/traces/q_014_trace.md) | Canadian GST/HST place-of-supply for exported services |
+| q_015 | trade_and_tax | hard | [trace](data/traces/q_015_trace.md) | HTS classification + Section 301 tariffs + importer-of-record |
+| q_016 | invoice_processing | easy | [trace](data/traces/q_016_trace.md) | Conceptual question — minimal SME need |
+| q_017 | invoice_processing | medium | [trace](data/traces/q_017_trace.md) | Duplicate-vendor vs duplicate-payment distinction |
+| q_018 | close_and_controls | hard | [trace](data/traces/q_018_trace.md) | Tier-classification judgment call (deficiency / significant deficiency / material weakness) |
 
 ---
 

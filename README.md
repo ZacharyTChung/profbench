@@ -177,16 +177,17 @@ codebase — the data flow, per-module purpose, database schema, and
 - ✅ Eval harness, autograder, leaderboard, auto-derived loss implications, HF export
 - ✅ Multi-model pilot run on full 18Q (Opus 4.7, Sonnet 4.6, Haiku 4.5) — numbers above; see `leaderboard/leaderboard.md`
 - ✅ Anchor data for q_001 (supplier dedupe), q_004 (duplicate detection), q_009 (sanctions)
-- ✅ Cited-authority reasoning traces for q_001, q_003, q_010 (`data/traces/`) — anchored to PCAOB / COSO / OFAC / IRS / Incoterms primary sources rather than working-practitioner voice (see [METHODOLOGY.md § Authorship constraint](METHODOLOGY.md#authorship-constraint))
+- ✅ Cited-authority reasoning traces for **all 18 questions** (`data/traces/`) — anchored to PCAOB / COSO / OFAC / FinCEN / IRS / Incoterms / EU VAT Directive / Excise Tax Act primary sources rather than working-practitioner voice (see [METHODOLOGY.md § Authorship constraint](METHODOLOGY.md#authorship-constraint))
+- ✅ Cross-grader judge support (`scorer.autoscore --judge gpt4o`) — non-Anthropic key retires self-grading bias on demand
 - ✅ q_003 rubric calibrated to accept both tolerance conventions (`<` and `≤`) per `analysis/triage_score1.md`
 - ✅ Score-1 triage written for the latest run (`analysis/triage_score1.md`)
 - ⚠ Author depth is uneven across categories: operational depth in `supplier_data`; cited-authority-only in `trade_and_tax` and `close_and_controls`. External SME validation pending — see [REVIEW_REQUEST.md](REVIEW_REQUEST.md)
 - ⚠ Single grader (no peer review yet)
 - ⚠ Self-grading bias when Opus 4.7 is among evaluated models (also acts as judge)
 - ☐ External SME review of cited-authority traces and `ideal_answer` fields ([REVIEW_REQUEST.md](REVIEW_REQUEST.md))
-- ☐ Cited-authority traces for the remaining 15 questions
 - ☐ Expansion to 30+ questions (18 of 30 done) — skewing toward assumption-based and source-grounded
-- ☐ Cross-grader run with non-Anthropic judge (requires OpenAI / Google key)
+- ☐ Execute a cross-grader run (code wired; needs `OPENAI_API_KEY` or equivalent in `.env`)
+- ☐ Manual scoring on a subset via `scorer/app.py` to populate inter-rater agreement
 
 ## Citation
 
