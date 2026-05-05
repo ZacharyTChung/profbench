@@ -176,18 +176,25 @@ and is also exposed for `--dry-run` to show what would be sent.
 
 ### `scorer/`
 
-**`scorer/autoscore.py`** — Claude as autograder.
-The `autoscore(question, response, rubric)` function builds a single
-user message containing the question, ideal answer, rubric, and
-candidate response, sends it to `AUTOGRADER_MODEL` (Opus 4.7), and
-parses the returned JSON `{score, reasoning, confidence}`. The
-`_extract_json` helper is forgiving — it tolerates fenced code blocks
-and stray preamble.
+**`scorer/autoscore.py`** — pluggable autograder.
+The `autoscore(question, response, rubric, judge=...)` function builds
+a single user message containing the question, ideal answer, rubric,
+and candidate response, sends it to the configured judge model, and
+parses the returned JSON `{score, reasoning, confidence, judge_model}`.
+The `_extract_json` helper is forgiving — it tolerates fenced code
+blocks and stray preamble.
+
+The judge defaults to Claude Opus 4.7 (Anthropic). Pass `--judge gpt4o`
+on the CLI to cross-grade with OpenAI and retire self-grading bias.
+Any alias registered in `runner.models.MODEL_REGISTRY` works as a
+judge; `_resolve_judge()` infers the provider (`anthropic` vs
+`openai`) from the model name and routes through the right SDK.
 
 The `score` CLI command reads all responses for a run, calls
 `autoscore()` on each, and writes results to the `scores` table with
-`scorer_type='auto'`. `--overwrite` re-grades responses that already
-have an auto score; otherwise they're skipped.
+`scorer_type='auto'`. The judge model id is persisted in
+`scorer_notes.judge_model` for reproducibility. `--overwrite` re-grades
+responses that already have an auto score; otherwise they're skipped.
 
 **`scorer/app.py`** — A single-file Streamlit UI for human scoring.
 Sidebar lets the reviewer pick a run + model + "unscored only" filter.
@@ -346,6 +353,18 @@ human scores.
 3. (Optional) If the analytic should drive an auto-derived implication,
    add a branch to `_implications()` that inspects the DataFrame and
    appends a bullet.
+
+### "I want a cross-grader run with a non-Anthropic judge"
+
+1. Add `OPENAI_API_KEY=...` to `.env`.
+2. `python -m scorer.autoscore --run-id <id> --judge gpt4o --overwrite`.
+   The `--overwrite` flag is required if the run was already graded by
+   the default Anthropic judge — otherwise existing scores are skipped.
+3. The judge model id lands in `scorer_notes.judge_model` for each
+   row in `scores`, so you can mix-and-match judges across runs and
+   still tell which graded what.
+4. Re-run `python -m analysis.report --run-id <id>` to refresh the
+   report against the new scores.
 
 ### "I want to publish the dataset to Hugging Face"
 

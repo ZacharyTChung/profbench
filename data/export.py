@@ -24,7 +24,7 @@ console = Console()
 
 EXPORT_PATH = PROJECT_ROOT / "data" / "profbench_export.json"
 
-VERSION = "0.1.0"
+VERSION = "0.3.0"
 DATASET_NAME = "ProfBench"
 
 
